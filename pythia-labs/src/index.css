@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 240 30% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 240 25% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 240 25% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 190 95% 55%;
+    --primary-foreground: 240 30% 8%;
+
+    --secondary: 260 60% 50%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 240 20% 20%;
+    --muted-foreground: 210 20% 65%;
+
+    --accent: 180 100% 65%;
+    --accent-foreground: 240 30% 8%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 240 20% 25%;
+    --input: 240 20% 25%;
+    --ring: 190 95% 55%;
+
+    --radius: 1rem;
+    
+    --glass-bg: 240 20% 15%;
+    --glass-border: 190 95% 55%;
+    --glow-cyan: 180 100% 65%;
+    --glow-purple: 260 60% 50%;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 240 30% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 240 25% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 240 25% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 190 95% 55%;
+    --primary-foreground: 240 30% 8%;
+
+    --secondary: 260 60% 50%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 240 20% 20%;
+    --muted-foreground: 210 20% 65%;
+
+    --accent: 180 100% 65%;
+    --accent-foreground: 240 30% 8%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 240 20% 25%;
+    --input: 240 20% 25%;
+    --ring: 190 95% 55%;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-glass-bg/40 backdrop-blur-xl border border-glass-border/20 rounded-2xl shadow-2xl;
+  }
+  
+  .glass-card-hover {
+    @apply transition-all duration-300 hover:bg-glass-bg/60 hover:border-glass-border/40 hover:shadow-[0_0_30px_rgba(0,255,255,0.2)] hover:scale-105;
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(135deg, hsl(240, 30%, 8%) 0%, hsl(260, 40%, 15%) 50%, hsl(240, 30%, 8%) 100%);
+  }
+  
+  .glow-text-cyan {
+    @apply text-accent drop-shadow-[0_0_10px_rgba(0,255,255,0.5)];
+  }
+  
+  .glow-text-purple {
+    @apply text-secondary drop-shadow-[0_0_10px_rgba(147,51,234,0.5)];
+  }
+  
+  .bubble-glow {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1);
+  }
+}
+
+.bg-glass-bg {
+  background-color: hsl(var(--glass-bg));
+}
+
+.border-glass-border {
+  border-color: hsl(var(--glass-border));
+}
+
+.text-glow-cyan {
+  color: hsl(var(--glow-cyan));
+}
+
+.text-glow-purple {
+  color: hsl(var(--glow-purple));
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
