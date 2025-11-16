@@ -2,6 +2,9 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIntroSequence } from "@/hooks/useIntroSequence";
 import { useQueryTransition } from "@/hooks/useQueryTransition";
+import { useNodeAttraction } from "@/hooks/useNodeAttraction";
+import { LegendPanel } from "@/components/LegendPanel";
+import { DistanceTooltip } from "@/components/DistanceTooltip";
 
 type RoleType = 'react' | 'python' | 'ml' | 'cloud' | 'java' | 'devops';
 
@@ -202,6 +205,11 @@ const ExplanationCard = ({
 export const EmbeddingSpaceMap = () => {
   const [selectedQuery, setSelectedQuery] = useState(0);
   const [hoveredBubble, setHoveredBubble] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<TalentBubble | null>(null);
+  const [hoveredLine, setHoveredLine] = useState<string | null>(null);
+  const [enabledRoles, setEnabledRoles] = useState<Set<RoleType>>(
+    new Set(['react', 'python', 'ml', 'cloud', 'java', 'devops'])
+  );
 
   // Animation hooks
   const { isStageActive } = useIntroSequence();
@@ -233,6 +241,41 @@ export const EmbeddingSpaceMap = () => {
     const dist = nearestNeighbors.map(n => n.distance);
     return dist.reduce((a, b) => a + b, 0) / dist.length;
   }, [nearestNeighbors]);
+
+  // Legend items for role filters
+  const legendItems = [
+    { role: 'react' as RoleType, color: '--role-react', label: 'React', icon: '⚛️', enabled: enabledRoles.has('react') },
+    { role: 'python' as RoleType, color: '--role-python', label: 'Python', icon: '🐍', enabled: enabledRoles.has('python') },
+    { role: 'ml' as RoleType, color: '--role-ml', label: 'ML/AI', icon: '🤖', enabled: enabledRoles.has('ml') },
+    { role: 'cloud' as RoleType, color: '--role-cloud', label: 'Cloud', icon: '☁️', enabled: enabledRoles.has('cloud') },
+    { role: 'java' as RoleType, color: '--role-java', label: 'Java', icon: '☕', enabled: enabledRoles.has('java') },
+    { role: 'devops' as RoleType, color: '--role-devops', label: 'DevOps', icon: '⚙️', enabled: enabledRoles.has('devops') }
+  ];
+
+  // Filter toggle handler
+  const handleFilterToggle = (role: RoleType) => {
+    setEnabledRoles(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(role)) {
+        newSet.delete(role);
+      } else {
+        newSet.add(role);
+      }
+      return newSet;
+    });
+  };
+
+  // Filter visible nodes based on enabled roles
+  const visibleNodes = useMemo(() => {
+    return syntheticData.filter(node => node.roleType && enabledRoles.has(node.roleType));
+  }, [enabledRoles]);
+
+  // Use node attraction hook
+  const attractedPositions = useNodeAttraction({
+    selectedNode,
+    neighbors: nearestNeighbors,
+    enabled: selectedNode !== null
+  });
 
   return (
     <section className="relative py-20 px-6">
@@ -271,6 +314,12 @@ export const EmbeddingSpaceMap = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
+            {/* Legend Panel Overlay */}
+            <LegendPanel
+              items={legendItems}
+              onFilterToggle={handleFilterToggle}
+            />
+
             <svg
               className="w-full h-full relative"
               viewBox="0 0 100 100"
@@ -281,46 +330,71 @@ export const EmbeddingSpaceMap = () => {
               }}
             >
               <AnimatePresence>
-                {nearestNeighbors.map((neighbor, idx) => (
-                  <motion.line
-                    key={neighbor.id}
-                    x1={queryBubble.x}
-                    y1={queryBubble.y}
-                    x2={neighbor.x}
-                    y2={neighbor.y}
-                    stroke="hsl(var(--glow-cyan))"
-                    strokeWidth="0.3"
-                    strokeDasharray="1 1"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{
-                      pathLength: isStageActive('lines') ? 1 : 0,
-                      opacity: isStageActive('lines') ? 0.6 : 0
-                    }}
-                    exit={{ pathLength: 0, opacity: 0 }}
-                    transition={{
-                      duration: 0.8,
-                      delay: 2.2 + idx * 0.15,
-                      ease: "easeOut"
-                    }}
-                  />
-                ))}
+                {nearestNeighbors.map((neighbor, idx) => {
+                  const midpoint = {
+                    x: (queryBubble.x + neighbor.x) / 2,
+                    y: (queryBubble.y + neighbor.y) / 2
+                  };
+                  const lineId = `line-${neighbor.id}`;
+                  const isHovered = hoveredLine === lineId;
+
+                  return (
+                    <g key={neighbor.id}>
+                      <motion.line
+                        x1={queryBubble.x}
+                        y1={queryBubble.y}
+                        x2={neighbor.x}
+                        y2={neighbor.y}
+                        stroke="hsl(var(--glow-cyan))"
+                        strokeWidth={isHovered ? "0.6" : "0.3"}
+                        strokeDasharray="1 1"
+                        className="cursor-pointer"
+                        onMouseEnter={() => setHoveredLine(lineId)}
+                        onMouseLeave={() => setHoveredLine(null)}
+                        initial={{ pathLength: 0, opacity: 0 }}
+                        animate={{
+                          pathLength: isStageActive('lines') ? 1 : 0,
+                          opacity: isStageActive('lines') ? (isHovered ? 1 : 0.6) : 0
+                        }}
+                        exit={{ pathLength: 0, opacity: 0 }}
+                        transition={{
+                          duration: 0.8,
+                          delay: 2.2 + idx * 0.15,
+                          ease: "easeOut",
+                          opacity: { duration: 0.2 }
+                        }}
+                      />
+                      <DistanceTooltip
+                        distance={neighbor.distance}
+                        position={midpoint}
+                        visible={isHovered}
+                      />
+                    </g>
+                  );
+                })}
               </AnimatePresence>
 
-              {syntheticData.map((bubble, idx) => {
+              {visibleNodes.map((bubble, idx) => {
                 const isNearest = nearestIds.has(bubble.id);
                 const isHovered = hoveredBubble === bubble.id;
                 const shouldFade = hoveredBubble && !isHovered && !nearestIds.has(bubble.id);
+                const isSelected = selectedNode?.id === bubble.id;
 
                 const distance = calculateDistance(queryBubble.x, queryBubble.y, bubble.x, bubble.y);
                 const glowLevel = getGlowLevel(distance);
                 const roleColor = getRoleColor(bubble.roleType);
 
+                // Get attracted position if node is a nearest neighbor and there's a selection
+                const attractedPos = attractedPositions.get(bubble.id);
+                const displayX = attractedPos?.x || bubble.x;
+                const displayY = attractedPos?.y || bubble.y;
+
                 return (
                   <g key={bubble.id}>
                     {/* Distance-based glow halo */}
                     <motion.circle
-                      cx={bubble.x}
-                      cy={bubble.y}
+                      cx={displayX}
+                      cy={displayY}
                       r={glowLevel.radius}
                       fill={`hsl(var(${roleColor}))`}
                       initial={{ opacity: 0 }}
@@ -329,30 +403,37 @@ export const EmbeddingSpaceMap = () => {
                           glowLevel.intensity * 0.2,
                           glowLevel.intensity * 0.5,
                           glowLevel.intensity * 0.2
-                        ] : 0
+                        ] : 0,
+                        cx: displayX,
+                        cy: displayY
                       }}
                       transition={{
                         opacity: { duration: 2, repeat: Infinity },
-                        delay: 0.4 + idx * 0.1
+                        delay: 0.4 + idx * 0.1,
+                        cx: { type: "spring", stiffness: 200, damping: 20 },
+                        cy: { type: "spring", stiffness: 200, damping: 20 }
                       }}
                     />
 
                     {/* Main node with role color */}
                     <motion.circle
-                      cx={bubble.x}
-                      cy={bubble.y}
+                      cx={displayX}
+                      cy={displayY}
                       r="2"
                       fill={`hsl(var(${roleColor}) / 0.3)`}
                       stroke={`hsl(var(${roleColor}))`}
-                      strokeWidth="0.3"
+                      strokeWidth={isSelected ? "0.5" : "0.3"}
                       className="cursor-pointer"
                       onMouseEnter={() => setHoveredBubble(bubble.id)}
                       onMouseLeave={() => setHoveredBubble(null)}
+                      onClick={() => setSelectedNode(selectedNode?.id === bubble.id ? null : bubble)}
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{
-                        scale: isStageActive('nodes') ? (isHovered ? 1.8 : 1) : 0,
+                        scale: isStageActive('nodes') ? (isHovered || isSelected ? 1.8 : 1) : 0,
                         opacity: isStageActive('nodes') ? (shouldFade ? 0.25 : 1) : 0,
-                        y: isStageActive('nodes') ? [bubble.y, bubble.y - 0.5, bubble.y] : bubble.y
+                        y: isStageActive('nodes') ? [displayY, displayY - 0.5, displayY] : displayY,
+                        cx: displayX,
+                        cy: displayY
                       }}
                       transition={{
                         scale: {
@@ -368,7 +449,9 @@ export const EmbeddingSpaceMap = () => {
                           repeat: Infinity,
                           ease: "easeInOut",
                           delay: 0.4 + idx * 0.1
-                        }
+                        },
+                        cx: { type: "spring", stiffness: 200, damping: 20 },
+                        cy: { type: "spring", stiffness: 200, damping: 20 }
                       }}
                       whileHover={{ scale: 2 }}
                     />
