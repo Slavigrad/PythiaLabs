@@ -58,6 +58,31 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* ===== Role Type Colors ===== */
+    --role-react: 260 60% 60%;        /* Purple */
+    --role-python: 180 70% 55%;       /* Teal */
+    --role-ml: 220 80% 60%;           /* Blue */
+    --role-cloud: 140 60% 55%;        /* Green */
+    --role-java: 25 85% 60%;          /* Orange */
+    --role-devops: 320 65% 60%;       /* Pink */
+
+    /* ===== Glow Variations ===== */
+    --glow-react: 260 60% 60%;
+    --glow-python: 180 70% 55%;
+    --glow-ml: 220 80% 60%;
+    --glow-cloud: 140 60% 55%;
+    --glow-java: 25 85% 60%;
+    --glow-devops: 320 65% 60%;
+
+    /* ===== Distance Heat Map ===== */
+    --heat-close: 180 100% 65%;       /* Bright cyan */
+    --heat-medium: 180 100% 55%;      /* Medium cyan */
+    --heat-far: 180 50% 45%;          /* Dim cyan */
+
+    /* ===== Explanation Card ===== */
+    --explanation-bg: 240 20% 15%;
+    --explanation-border: 180 100% 65%;
   }
 
   .dark {
@@ -114,6 +139,126 @@ All colors MUST be HSL.
   
   .bubble-glow {
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1);
+  }
+
+  /* ===== Legend Panel ===== */
+  .legend-panel {
+    @apply absolute top-4 left-4 p-4 z-10;
+    @apply bg-glass-bg/50 backdrop-blur-xl;
+    @apply border border-glass-border/30 rounded-xl;
+    @apply shadow-2xl;
+    min-width: 220px;
+  }
+
+  /* ===== Sticky Sidebar ===== */
+  .sticky-sidebar {
+    @apply sticky top-20;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--glass-border)) transparent;
+  }
+
+  .sticky-sidebar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .sticky-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .sticky-sidebar::-webkit-scrollbar-thumb {
+    background: hsl(var(--glass-border) / 0.3);
+    border-radius: 3px;
+  }
+
+  /* ===== Distance Label ===== */
+  .distance-label {
+    @apply font-mono;
+    fill: hsl(var(--accent));
+    text-shadow: 0 0 3px rgba(0, 255, 255, 0.8);
+    font-size: 0.8px;
+  }
+
+  /* ===== Explanation Card ===== */
+  .explanation-card {
+    @apply p-4 mt-4 rounded-lg;
+    @apply border-l-4 border-accent;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--explanation-bg) / 0.6),
+      hsl(var(--explanation-bg) / 0.3)
+    );
+    backdrop-filter: blur(20px);
+  }
+
+  /* ===== Role Badge ===== */
+  .role-badge {
+    @apply px-2 py-1 rounded-md text-xs font-semibold;
+    @apply inline-flex items-center gap-1;
+    backdrop-filter: blur(10px);
+  }
+
+  .role-badge-react {
+    @apply bg-[hsl(var(--role-react))]/20;
+    @apply border border-[hsl(var(--role-react))]/40;
+    @apply text-[hsl(var(--role-react))];
+  }
+
+  .role-badge-python {
+    @apply bg-[hsl(var(--role-python))]/20;
+    @apply border border-[hsl(var(--role-python))]/40;
+    @apply text-[hsl(var(--role-python))];
+  }
+
+  .role-badge-ml {
+    @apply bg-[hsl(var(--role-ml))]/20;
+    @apply border border-[hsl(var(--role-ml))]/40;
+    @apply text-[hsl(var(--role-ml))];
+  }
+
+  .role-badge-cloud {
+    @apply bg-[hsl(var(--role-cloud))]/20;
+    @apply border border-[hsl(var(--role-cloud))]/40;
+    @apply text-[hsl(var(--role-cloud))];
+  }
+
+  .role-badge-java {
+    @apply bg-[hsl(var(--role-java))]/20;
+    @apply border border-[hsl(var(--role-java))]/40;
+    @apply text-[hsl(var(--role-java))];
+  }
+
+  .role-badge-devops {
+    @apply bg-[hsl(var(--role-devops))]/20;
+    @apply border border-[hsl(var(--role-devops))]/40;
+    @apply text-[hsl(var(--role-devops))];
+  }
+
+  /* ===== Query Transition Blur Effect ===== */
+  .query-blur-transition {
+    transition: filter 0.3s ease-out, opacity 0.3s ease-out;
+  }
+
+  .query-blur-transition.blurring {
+    filter: blur(8px);
+    opacity: 0.4;
+  }
+
+  /* ===== Glow Ring Animations ===== */
+  @keyframes glow-pulse-close {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+
+  @keyframes glow-pulse-medium {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.4; }
+  }
+
+  @keyframes glow-pulse-far {
+    0%, 100% { opacity: 0.05; }
+    50% { opacity: 0.2; }
   }
 }
 
