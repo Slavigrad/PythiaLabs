@@ -60,20 +60,20 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* ===== Role Type Colors ===== */
-    --role-react: 260 60% 60%;        /* Purple */
-    --role-python: 180 70% 55%;       /* Teal */
-    --role-ml: 220 80% 60%;           /* Blue */
-    --role-cloud: 140 60% 55%;        /* Green */
-    --role-java: 25 85% 60%;          /* Orange */
-    --role-devops: 320 65% 60%;       /* Pink */
+    --role-react: 260 75% 68%;        /* Purple - Increased saturation & lightness */
+    --role-python: 180 85% 62%;       /* Teal - Increased saturation & lightness */
+    --role-ml: 220 90% 68%;           /* Blue - Increased saturation & lightness */
+    --role-cloud: 140 75% 62%;        /* Green - Increased saturation & lightness */
+    --role-java: 25 95% 68%;          /* Orange - Increased saturation & lightness */
+    --role-devops: 320 80% 68%;       /* Pink - Increased saturation & lightness */
 
     /* ===== Glow Variations ===== */
-    --glow-react: 260 60% 60%;
-    --glow-python: 180 70% 55%;
-    --glow-ml: 220 80% 60%;
-    --glow-cloud: 140 60% 55%;
-    --glow-java: 25 85% 60%;
-    --glow-devops: 320 65% 60%;
+    --glow-react: 260 75% 68%;
+    --glow-python: 180 85% 62%;
+    --glow-ml: 220 90% 68%;
+    --glow-cloud: 140 75% 62%;
+    --glow-java: 25 95% 68%;
+    --glow-devops: 320 80% 68%;
 
     /* ===== Distance Heat Map ===== */
     --heat-close: 180 100% 65%;       /* Bright cyan */
@@ -143,11 +143,11 @@ All colors MUST be HSL.
 
   /* ===== Legend Panel ===== */
   .legend-panel {
-    @apply absolute top-4 left-4 p-4 z-10;
+    @apply absolute top-4 left-4 p-6 z-10;
     @apply bg-glass-bg/50 backdrop-blur-xl;
     @apply border border-glass-border/30 rounded-xl;
     @apply shadow-2xl;
-    min-width: 220px;
+    min-width: 280px;
   }
 
   /* ===== Sticky Sidebar ===== */
@@ -160,7 +160,7 @@ All colors MUST be HSL.
   }
 
   .sticky-sidebar::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
   }
 
   .sticky-sidebar::-webkit-scrollbar-track {
@@ -176,13 +176,13 @@ All colors MUST be HSL.
   .distance-label {
     @apply font-mono;
     fill: hsl(var(--accent));
-    text-shadow: 0 0 3px rgba(0, 255, 255, 0.8);
-    font-size: 0.8px;
+    text-shadow: 0 0 4px rgba(0, 255, 255, 0.9);
+    font-size: 1.2px;
   }
 
   /* ===== Explanation Card ===== */
   .explanation-card {
-    @apply p-4 mt-4 rounded-lg;
+    @apply p-6 mt-6 rounded-lg;
     @apply border-l-4 border-accent;
     background: linear-gradient(
       135deg,

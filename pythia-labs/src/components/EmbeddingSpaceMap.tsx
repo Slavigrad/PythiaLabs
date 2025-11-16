@@ -151,10 +151,10 @@ interface GlowLevel {
 }
 
 const GLOW_LEVELS: GlowLevel[] = [
-  { distance: 15, intensity: 1.0, radius: 4 },
-  { distance: 25, intensity: 0.6, radius: 3 },
-  { distance: 35, intensity: 0.3, radius: 2.5 },
-  { distance: Infinity, intensity: 0.1, radius: 2 }
+  { distance: 15, intensity: 1.0, radius: 5.6 },
+  { distance: 25, intensity: 0.6, radius: 4.2 },
+  { distance: 35, intensity: 0.3, radius: 3.5 },
+  { distance: Infinity, intensity: 0.1, radius: 2.8 }
 ];
 
 const getGlowLevel = (distance: number): GlowLevel => {
@@ -182,10 +182,10 @@ const ExplanationCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.8, duration: 0.4 }}
     >
-      <h4 className="text-sm font-semibold mb-2 text-accent">
+      <h4 className="text-base font-semibold mb-3 text-accent">
         Why these {resultCount} results?
       </h4>
-      <p className="text-xs text-muted-foreground leading-relaxed">
+      <p className="text-sm text-muted-foreground leading-relaxed">
         These candidates are closest to your query
         <span className="font-mono text-primary"> "{queryText}" </span>
         in the <span className="font-semibold">{embeddingDimension}-dimensional</span> embedding
@@ -193,8 +193,8 @@ const ExplanationCard = ({
         <br /><br />
         Closer positions = more semantically similar skills and experience.
       </p>
-      <div className="mt-2 pt-2 border-t border-glass-border/30">
-        <span className="text-xs text-muted-foreground">
+      <div className="mt-3 pt-3 border-t border-glass-border/30">
+        <span className="text-sm text-muted-foreground">
           Avg. distance: <span className="font-mono text-accent">{averageDistance.toFixed(3)}</span>
         </span>
       </div>
@@ -278,26 +278,26 @@ export const EmbeddingSpaceMap = () => {
   });
 
   return (
-    <section className="relative py-20 px-6">
+    <section className="relative py-24 px-6">
       <div className="max-w-7xl mx-auto">
-        <motion.div 
-          className="glass-card p-8 mb-8 text-center"
+        <motion.div
+          className="glass-card p-10 mb-10 text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+          <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
             Embedding Space Map – IT Talent Universe
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
             A live semantic universe where IT talent positions reveal similarity. Closer = more semantically related.
           </p>
-          
+
           <select
             value={selectedQuery}
             onChange={(e) => setSelectedQuery(Number(e.target.value))}
-            className="glass-card px-4 py-2 rounded-lg text-foreground bg-background/50 border border-glass-border focus:outline-none focus:ring-2 focus:ring-primary"
+            className="glass-card px-6 py-3 text-base rounded-lg text-foreground bg-background/50 border border-glass-border focus:outline-none focus:ring-2 focus:ring-primary"
           >
             {queries.map((q, idx) => (
               <option key={idx} value={idx}>
@@ -307,9 +307,9 @@ export const EmbeddingSpaceMap = () => {
           </select>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <motion.div
-            className="lg:col-span-2 glass-card p-8 relative h-[600px] overflow-hidden"
+            className="lg:col-span-2 glass-card p-12 relative h-[800px] overflow-hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
@@ -346,7 +346,7 @@ export const EmbeddingSpaceMap = () => {
                         x2={neighbor.x}
                         y2={neighbor.y}
                         stroke="hsl(var(--glow-cyan))"
-                        strokeWidth={isHovered ? "0.6" : "0.3"}
+                        strokeWidth={isHovered ? "0.8" : "0.4"}
                         strokeDasharray="1 1"
                         className="cursor-pointer"
                         onMouseEnter={() => setHoveredLine(lineId)}
@@ -419,10 +419,10 @@ export const EmbeddingSpaceMap = () => {
                     <motion.circle
                       cx={displayX}
                       cy={displayY}
-                      r="2"
+                      r="2.8"
                       fill={`hsl(var(${roleColor}) / 0.3)`}
                       stroke={`hsl(var(${roleColor}))`}
-                      strokeWidth={isSelected ? "0.5" : "0.3"}
+                      strokeWidth={isSelected ? "0.7" : "0.4"}
                       className="cursor-pointer"
                       onMouseEnter={() => setHoveredBubble(bubble.id)}
                       onMouseLeave={() => setHoveredBubble(null)}
@@ -465,37 +465,38 @@ export const EmbeddingSpaceMap = () => {
                           transition={{ duration: 0.2 }}
                         >
                           <rect
-                            x={bubble.x - 8}
-                            y={bubble.y - 10}
-                            width="16"
-                            height="7"
-                            rx="1"
+                            x={bubble.x - 11}
+                            y={bubble.y - 13}
+                            width="22"
+                            height="10"
+                            rx="1.2"
                             fill="hsl(var(--background))"
                             stroke="hsl(var(--glass-border))"
-                            strokeWidth="0.2"
+                            strokeWidth="0.3"
                             opacity="0.95"
+                            filter="drop-shadow(0 0 2px hsl(var(--glow-cyan)))"
                           />
                           <text
                             x={bubble.x}
-                            y={bubble.y - 7.5}
+                            y={bubble.y - 9.5}
                             textAnchor="middle"
-                            className="text-[1.2px] font-semibold fill-foreground"
+                            className="text-[1.6px] font-semibold fill-foreground"
                           >
                             {bubble.name}
                           </text>
                           <text
                             x={bubble.x}
-                            y={bubble.y - 5.5}
+                            y={bubble.y - 7}
                             textAnchor="middle"
-                            className="text-[0.9px] fill-muted-foreground"
+                            className="text-[1.2px] fill-muted-foreground"
                           >
                             {bubble.role}
                           </text>
                           <text
                             x={bubble.x}
-                            y={bubble.y - 4}
+                            y={bubble.y - 5}
                             textAnchor="middle"
-                            className="text-[0.8px] fill-muted-foreground"
+                            className="text-[1.1px] fill-muted-foreground"
                           >
                             {bubble.location}
                           </text>
@@ -512,7 +513,7 @@ export const EmbeddingSpaceMap = () => {
                 <motion.circle
                   cx={queryBubble.x}
                   cy={queryBubble.y}
-                  r="5"
+                  r="7"
                   fill="hsl(var(--glow-cyan))"
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{
@@ -529,7 +530,7 @@ export const EmbeddingSpaceMap = () => {
                 <motion.circle
                   cx={queryBubble.x}
                   cy={queryBubble.y}
-                  r="3.5"
+                  r="4.9"
                   fill="hsl(var(--accent))"
                   opacity="0.4"
                   initial={{ scale: 0 }}
@@ -541,10 +542,10 @@ export const EmbeddingSpaceMap = () => {
                 <motion.circle
                   cx={queryBubble.x}
                   cy={queryBubble.y}
-                  r="2.5"
+                  r="3.5"
                   fill="hsl(var(--accent))"
                   stroke="hsl(var(--glow-cyan))"
-                  strokeWidth="0.4"
+                  strokeWidth="0.6"
                   initial={{ scale: 0 }}
                   animate={{ scale: isStageActive('query') ? 1 : 0 }}
                   transition={{ delay: 2.0, type: "spring", stiffness: 200, damping: 15 }}
@@ -553,9 +554,9 @@ export const EmbeddingSpaceMap = () => {
                 {/* Query label */}
                 <motion.text
                   x={queryBubble.x}
-                  y={queryBubble.y + 7}
+                  y={queryBubble.y + 9}
                   textAnchor="middle"
-                  className="text-[1px] font-semibold fill-accent"
+                  className="text-[1.4px] font-semibold fill-accent"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: isStageActive('query') ? 0.8 : 0 }}
                   transition={{ delay: 2.4 }}
@@ -567,7 +568,7 @@ export const EmbeddingSpaceMap = () => {
           </motion.div>
 
           <motion.div
-            className="glass-card p-6 sticky-sidebar"
+            className="glass-card p-8 sticky-sidebar"
             initial={{ opacity: 0, x: 100, filter: "blur(10px)" }}
             animate={{
               opacity: isStageActive('sidebar') ? 1 : 0,
@@ -580,22 +581,22 @@ export const EmbeddingSpaceMap = () => {
               ease: [0.4, 0, 0.2, 1]
             }}
           >
-            <h3 className="text-xl font-semibold mb-4 text-foreground">
+            <h3 className="text-2xl font-semibold mb-6 text-foreground">
               Nearest Neighbors
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {nearestNeighbors.map((neighbor, idx) => (
                 <motion.div
                   key={neighbor.id}
-                  className="p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                  className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 + idx * 0.1 }}
                 >
-                  <div className="font-medium text-foreground text-sm">
+                  <div className="font-medium text-foreground text-base">
                     {neighbor.name} - {neighbor.role}
                   </div>
-                  <div className="text-xs text-muted-foreground">{neighbor.location}</div>
+                  <div className="text-sm text-muted-foreground mt-1">{neighbor.location}</div>
                 </motion.div>
               ))}
             </div>
