@@ -24,15 +24,16 @@ export const DistanceTooltip = ({
         transition={{ duration: 0.2 }}
       >
         <rect
-          x={position.x - 8}
-          y={position.y - 3}
-          width="16"
-          height="5"
-          rx="0.5"
+          x={position.x - 11}
+          y={position.y - 4}
+          width="22"
+          height="7"
+          rx="0.7"
           fill="hsl(var(--background))"
           stroke="hsl(var(--accent))"
-          strokeWidth="0.2"
+          strokeWidth="0.3"
           opacity="0.95"
+          filter="drop-shadow(0 0 3px hsl(var(--glow-cyan)))"
         />
         <text
           x={position.x}
