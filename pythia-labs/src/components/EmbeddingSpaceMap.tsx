@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIntroSequence } from "@/hooks/useIntroSequence";
+import { useQueryTransition } from "@/hooks/useQueryTransition";
 
 type RoleType = 'react' | 'python' | 'ml' | 'cloud' | 'java' | 'devops';
 
@@ -201,6 +203,10 @@ export const EmbeddingSpaceMap = () => {
   const [selectedQuery, setSelectedQuery] = useState(0);
   const [hoveredBubble, setHoveredBubble] = useState<string | null>(null);
 
+  // Animation hooks
+  const { isStageActive } = useIntroSequence();
+  const transition = useQueryTransition(selectedQuery);
+
   const queryBubble: TalentBubble = {
     id: "query",
     name: "Query",
@@ -259,16 +265,23 @@ export const EmbeddingSpaceMap = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <motion.div 
+          <motion.div
             className="lg:col-span-2 glass-card p-8 relative h-[600px] overflow-hidden"
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            <svg className="w-full h-full relative" viewBox="0 0 100 100">
+            <svg
+              className="w-full h-full relative"
+              viewBox="0 0 100 100"
+              style={{
+                filter: transition.phase === 'blurOut' ? 'blur(8px)' : 'blur(0px)',
+                opacity: transition.phase === 'blurOut' ? 0.4 : 1,
+                transition: 'filter 0.3s ease-out, opacity 0.3s ease-out'
+              }}
+            >
               <AnimatePresence>
-                {nearestNeighbors.map((neighbor) => (
+                {nearestNeighbors.map((neighbor, idx) => (
                   <motion.line
                     key={neighbor.id}
                     x1={queryBubble.x}
@@ -279,9 +292,16 @@ export const EmbeddingSpaceMap = () => {
                     strokeWidth="0.3"
                     strokeDasharray="1 1"
                     initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 0.6 }}
+                    animate={{
+                      pathLength: isStageActive('lines') ? 1 : 0,
+                      opacity: isStageActive('lines') ? 0.6 : 0
+                    }}
                     exit={{ pathLength: 0, opacity: 0 }}
-                    transition={{ duration: 0.8 }}
+                    transition={{
+                      duration: 0.8,
+                      delay: 2.2 + idx * 0.15,
+                      ease: "easeOut"
+                    }}
                   />
                 ))}
               </AnimatePresence>
@@ -305,13 +325,16 @@ export const EmbeddingSpaceMap = () => {
                       fill={`hsl(var(${roleColor}))`}
                       initial={{ opacity: 0 }}
                       animate={{
-                        opacity: [
+                        opacity: isStageActive('nodes') ? [
                           glowLevel.intensity * 0.2,
                           glowLevel.intensity * 0.5,
                           glowLevel.intensity * 0.2
-                        ]
+                        ] : 0
                       }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      transition={{
+                        opacity: { duration: 2, repeat: Infinity },
+                        delay: 0.4 + idx * 0.1
+                      }}
                     />
 
                     {/* Main node with role color */}
@@ -327,15 +350,25 @@ export const EmbeddingSpaceMap = () => {
                       onMouseLeave={() => setHoveredBubble(null)}
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{
-                        scale: isHovered ? 1.8 : 1,
-                        opacity: shouldFade ? 0.25 : 1,
-                        y: [bubble.y, bubble.y - 0.5, bubble.y]
+                        scale: isStageActive('nodes') ? (isHovered ? 1.8 : 1) : 0,
+                        opacity: isStageActive('nodes') ? (shouldFade ? 0.25 : 1) : 0,
+                        y: isStageActive('nodes') ? [bubble.y, bubble.y - 0.5, bubble.y] : bubble.y
                       }}
                       transition={{
-                        scale: { duration: 0.3 },
-                        opacity: { duration: 0.4 },
-                        y: { duration: 3 + idx * 0.3, repeat: Infinity, ease: "easeInOut" },
-                        delay: idx * 0.1
+                        scale: {
+                          duration: isStageActive('nodes') ? 0.3 : 0.5,
+                          delay: 0.4 + idx * 0.1,
+                          type: "spring",
+                          stiffness: 150,
+                          damping: 12
+                        },
+                        opacity: { duration: 0.4, delay: 0.4 + idx * 0.1 },
+                        y: {
+                          duration: 3 + idx * 0.3,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: 0.4 + idx * 0.1
+                        }
                       }}
                       whileHover={{ scale: 2 }}
                     />
@@ -400,12 +433,12 @@ export const EmbeddingSpaceMap = () => {
                   fill="hsl(var(--glow-cyan))"
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{
-                    opacity: [0.2, 0.5, 0.2],
-                    scale: 1
+                    opacity: isStageActive('query') ? [0.2, 0.5, 0.2] : 0,
+                    scale: isStageActive('query') ? 1 : 0
                   }}
                   transition={{
                     opacity: { duration: 1.5, repeat: Infinity },
-                    scale: { delay: 0.2, type: "spring", stiffness: 100 }
+                    scale: { delay: 1.8, type: "spring", stiffness: 100 }
                   }}
                 />
 
@@ -417,8 +450,8 @@ export const EmbeddingSpaceMap = () => {
                   fill="hsl(var(--accent))"
                   opacity="0.4"
                   initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.3, type: "spring", stiffness: 120 }}
+                  animate={{ scale: isStageActive('query') ? 1 : 0 }}
+                  transition={{ delay: 1.9, type: "spring", stiffness: 120 }}
                 />
 
                 {/* Core node */}
@@ -430,8 +463,8 @@ export const EmbeddingSpaceMap = () => {
                   stroke="hsl(var(--glow-cyan))"
                   strokeWidth="0.4"
                   initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 15 }}
+                  animate={{ scale: isStageActive('query') ? 1 : 0 }}
+                  transition={{ delay: 2.0, type: "spring", stiffness: 200, damping: 15 }}
                 />
 
                 {/* Query label */}
@@ -441,8 +474,8 @@ export const EmbeddingSpaceMap = () => {
                   textAnchor="middle"
                   className="text-[1px] font-semibold fill-accent"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.8 }}
-                  transition={{ delay: 0.6 }}
+                  animate={{ opacity: isStageActive('query') ? 0.8 : 0 }}
+                  transition={{ delay: 2.4 }}
                 >
                   Query
                 </motion.text>
@@ -450,12 +483,19 @@ export const EmbeddingSpaceMap = () => {
             </svg>
           </motion.div>
 
-          <motion.div 
-            className="glass-card p-6"
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+          <motion.div
+            className="glass-card p-6 sticky-sidebar"
+            initial={{ opacity: 0, x: 100, filter: "blur(10px)" }}
+            animate={{
+              opacity: isStageActive('sidebar') ? 1 : 0,
+              x: isStageActive('sidebar') ? 0 : 100,
+              filter: isStageActive('sidebar') ? "blur(0px)" : "blur(10px)"
+            }}
+            transition={{
+              delay: 2.6,
+              duration: 0.6,
+              ease: [0.4, 0, 0.2, 1]
+            }}
           >
             <h3 className="text-xl font-semibold mb-4 text-foreground">
               Nearest Neighbors
