@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useIntroSequence } from "@/hooks/useIntroSequence";
 import { useQueryTransition } from "@/hooks/useQueryTransition";
 import { useNodeAttraction } from "@/hooks/useNodeAttraction";
-import { LegendPanel } from "@/components/LegendPanel";
 import { DistanceTooltip } from "@/components/DistanceTooltip";
 
 type RoleType = 'react' | 'python' | 'ml' | 'cloud' | 'java' | 'devops';
@@ -202,6 +201,30 @@ const ExplanationCard = ({
   );
 };
 
+// How to Read Info Card Component
+const HowToReadCard = () => {
+  return (
+    <motion.div
+      className="info-card"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.0, duration: 0.4 }}
+    >
+      <h4 className="text-base font-semibold mb-3 text-accent flex items-center gap-2">
+        <span>💡</span> How to read this view
+      </h4>
+      <div className="space-y-2 text-sm text-muted-foreground leading-relaxed">
+        <p>
+          <span className="font-semibold text-foreground">Your search query</span> is converted into an embedding vector and plotted as the large glowing bubble in the center.
+        </p>
+        <p>
+          <span className="font-semibold text-foreground">Closer bubbles</span> represent candidates with more semantically similar skills and experience based on cosine distance in vector space.
+        </p>
+      </div>
+    </motion.div>
+  );
+};
+
 export const EmbeddingSpaceMap = () => {
   const [selectedQuery, setSelectedQuery] = useState(0);
   const [hoveredBubble, setHoveredBubble] = useState<string | null>(null);
@@ -307,19 +330,73 @@ export const EmbeddingSpaceMap = () => {
           </select>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Legend Panel - Left Column */}
           <motion.div
-            className="lg:col-span-2 glass-card p-12 relative h-[800px] overflow-hidden"
+            className="lg:col-span-3 glass-card p-6 h-fit sticky top-20"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <h3 className="text-xl font-semibold mb-6 text-foreground">Role Types</h3>
+            <div className="space-y-4">
+              {legendItems.map(item => (
+                <div key={item.role} className="flex items-center gap-3">
+                  <div
+                    className="w-5 h-5 rounded-full transition-opacity flex-shrink-0"
+                    style={{
+                      backgroundColor: `hsl(var(${item.color}))`,
+                      opacity: item.enabled ? 1 : 0.3,
+                      boxShadow: item.enabled ? `0 0 12px hsl(var(${item.color}) / 0.5)` : 'none'
+                    }}
+                  />
+                  <span className={`text-base flex-1 transition-opacity ${item.enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                    {item.icon} {item.label}
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={item.enabled}
+                      onChange={() => handleFilterToggle(item.role)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-muted/30 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary/60"></div>
+                  </label>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 pt-6 border-t border-glass-border/30">
+              <button
+                onClick={() => {
+                  legendItems.forEach(item => {
+                    if (item.enabled !== enabledRoles.has(item.role)) {
+                      handleFilterToggle(item.role);
+                    }
+                  });
+                }}
+                className="text-sm text-accent hover:text-primary transition-colors font-medium"
+              >
+                Toggle All
+              </button>
+            </div>
+
+            {/* Legend Caption */}
+            <div className="mt-6 pt-6 border-t border-glass-border/30">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <span className="font-semibold text-foreground">Numbered bubbles (1, 2, 3)</span> are the top matches.
+                <br /><br />
+                <span className="font-semibold text-foreground">Brighter glow</span> = closer semantic distance to your query.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Map Canvas - Middle Column */}
+          <motion.div
+            className="lg:col-span-6 glass-card p-12 relative h-[800px] overflow-hidden flex flex-col"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            {/* Legend Panel Overlay */}
-            <LegendPanel
-              items={legendItems}
-              onFilterToggle={handleFilterToggle}
-            />
-
             <svg
               className="w-full h-full relative"
               viewBox="0 0 100 100"
@@ -376,6 +453,7 @@ export const EmbeddingSpaceMap = () => {
 
               {visibleNodes.map((bubble, idx) => {
                 const isNearest = nearestIds.has(bubble.id);
+                const neighborRank = nearestNeighbors.findIndex(n => n.id === bubble.id);
                 const isHovered = hoveredBubble === bubble.id;
                 const shouldFade = hoveredBubble && !isHovered && !nearestIds.has(bubble.id);
                 const isSelected = selectedNode?.id === bubble.id;
@@ -456,6 +534,36 @@ export const EmbeddingSpaceMap = () => {
                       whileHover={{ scale: 2 }}
                     />
 
+                    {/* Numeric badge for top 3 neighbors */}
+                    {isNearest && neighborRank >= 0 && (
+                      <g>
+                        {/* Badge background circle */}
+                        <motion.circle
+                          cx={displayX + 4}
+                          cy={displayY - 4}
+                          r="2.2"
+                          fill="hsl(var(--accent))"
+                          stroke="hsl(var(--background))"
+                          strokeWidth="0.4"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 2.8 + neighborRank * 0.1, type: "spring", stiffness: 200 }}
+                        />
+                        {/* Badge number */}
+                        <motion.text
+                          x={displayX + 4}
+                          y={displayY - 3.2}
+                          textAnchor="middle"
+                          className="text-[2px] font-bold fill-background"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 2.9 + neighborRank * 0.1 }}
+                        >
+                          {neighborRank + 1}
+                        </motion.text>
+                      </g>
+                    )}
+
                     <AnimatePresence>
                       {isHovered && (
                         <motion.g
@@ -480,7 +588,7 @@ export const EmbeddingSpaceMap = () => {
                             x={bubble.x}
                             y={bubble.y - 9.5}
                             textAnchor="middle"
-                            className="text-[1.6px] font-semibold fill-foreground"
+                            className="text-[2px] font-semibold fill-foreground"
                           >
                             {bubble.name}
                           </text>
@@ -488,7 +596,7 @@ export const EmbeddingSpaceMap = () => {
                             x={bubble.x}
                             y={bubble.y - 7}
                             textAnchor="middle"
-                            className="text-[1.2px] fill-muted-foreground"
+                            className="text-[1.5px] fill-muted-foreground"
                           >
                             {bubble.role}
                           </text>
@@ -496,7 +604,7 @@ export const EmbeddingSpaceMap = () => {
                             x={bubble.x}
                             y={bubble.y - 5}
                             textAnchor="middle"
-                            className="text-[1.1px] fill-muted-foreground"
+                            className="text-[1.4px] fill-muted-foreground"
                           >
                             {bubble.location}
                           </text>
@@ -551,24 +659,37 @@ export const EmbeddingSpaceMap = () => {
                   transition={{ delay: 2.0, type: "spring", stiffness: 200, damping: 15 }}
                 />
 
-                {/* Query label */}
+                {/* Query label above bubble */}
                 <motion.text
                   x={queryBubble.x}
-                  y={queryBubble.y + 9}
+                  y={queryBubble.y - 10}
                   textAnchor="middle"
-                  className="text-[1.4px] font-semibold fill-accent"
+                  className="text-[2px] font-bold fill-accent"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: isStageActive('query') ? 0.8 : 0 }}
+                  animate={{ opacity: isStageActive('query') ? 1 : 0 }}
                   transition={{ delay: 2.4 }}
                 >
-                  Query
+                  Query: "{queries[selectedQuery].label}"
                 </motion.text>
               </g>
             </svg>
+
+            {/* Map Caption */}
+            <motion.div
+              className="mt-4 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 3.0, duration: 0.4 }}
+            >
+              <p className="text-sm text-muted-foreground">
+                The large glowing bubble is your search query as an embedding in vector space.
+              </p>
+            </motion.div>
           </motion.div>
 
+          {/* Nearest Neighbors - Right Column */}
           <motion.div
-            className="glass-card p-8 sticky-sidebar"
+            className="lg:col-span-3 glass-card p-8 sticky-sidebar"
             initial={{ opacity: 0, x: 100, filter: "blur(10px)" }}
             animate={{
               opacity: isStageActive('sidebar') ? 1 : 0,
@@ -585,20 +706,38 @@ export const EmbeddingSpaceMap = () => {
               Nearest Neighbors
             </h3>
             <div className="space-y-4">
-              {nearestNeighbors.map((neighbor, idx) => (
-                <motion.div
-                  key={neighbor.id}
-                  className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + idx * 0.1 }}
-                >
-                  <div className="font-medium text-foreground text-base">
-                    {neighbor.name} - {neighbor.role}
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-1">{neighbor.location}</div>
-                </motion.div>
-              ))}
+              {nearestNeighbors.map((neighbor, idx) => {
+                const isHovered = hoveredBubble === neighbor.id;
+                return (
+                  <motion.div
+                    key={neighbor.id}
+                    className={`p-5 rounded-lg transition-all cursor-pointer ${
+                      isHovered
+                        ? 'bg-accent/20 ring-2 ring-accent shadow-lg'
+                        : 'bg-muted/30 hover:bg-muted/50'
+                    }`}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + idx * 0.1 }}
+                    onMouseEnter={() => setHoveredBubble(neighbor.id)}
+                    onMouseLeave={() => setHoveredBubble(null)}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Rank Badge */}
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center">
+                        <span className="text-background font-bold text-base">{idx + 1}</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-foreground text-base">
+                          {neighbor.name}
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">{neighbor.role}</div>
+                        <div className="text-sm text-muted-foreground">{neighbor.location}</div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
 
             <ExplanationCard
@@ -606,6 +745,8 @@ export const EmbeddingSpaceMap = () => {
               resultCount={nearestNeighbors.length}
               averageDistance={averageDistance}
             />
+
+            <HowToReadCard />
           </motion.div>
         </div>
       </div>
