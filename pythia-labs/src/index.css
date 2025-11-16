@@ -260,6 +260,75 @@ All colors MUST be HSL.
     0%, 100% { opacity: 0.05; }
     50% { opacity: 0.2; }
   }
+
+  /* ===== Phase 2: Preset Cards ===== */
+  .preset-card {
+    @apply p-6 rounded-xl;
+    @apply border border-glass-border/20;
+    @apply bg-glass-bg/30 backdrop-blur-lg;
+    @apply transition-all duration-300;
+    @apply cursor-pointer;
+    @apply text-left;
+  }
+
+  .preset-card:hover {
+    @apply border-primary/40 bg-glass-bg/50;
+    @apply shadow-lg shadow-primary/10;
+  }
+
+  .preset-card-active {
+    @apply border-accent bg-accent/10;
+    @apply shadow-xl shadow-accent/20;
+  }
+
+  /* ===== Preset Diagram Container ===== */
+  .preset-diagram {
+    @apply w-16 h-16 mx-auto;
+    @apply bg-background/50 rounded-lg;
+    @apply flex items-center justify-center;
+    @apply border border-glass-border/10;
+  }
+
+  /* ===== Cosine Range Legend ===== */
+  .cosine-legend {
+    @apply p-4 rounded-lg;
+    @apply bg-glass-bg/30 backdrop-blur-md;
+    @apply border border-glass-border/20;
+  }
+
+  .cosine-range-row {
+    @apply px-2 py-1.5 rounded;
+    @apply transition-all duration-200;
+  }
+
+  .cosine-range-row:hover {
+    @apply bg-glass-bg/40;
+  }
+
+  .cosine-range-row.active {
+    @apply bg-accent/10 border-l-2 border-accent;
+  }
+
+  /* ===== Metric Tab Enhanced ===== */
+  .metric-tab {
+    @apply flex-1 py-3 px-4 rounded-lg;
+    @apply transition-all duration-300;
+    @apply relative;
+  }
+
+  .metric-tab-inactive {
+    @apply bg-muted/20 text-muted-foreground;
+  }
+
+  .metric-tab-active {
+    @apply bg-primary text-primary-foreground;
+    @apply shadow-lg shadow-primary/20;
+  }
+
+  .metric-tab-description {
+    @apply text-xs text-muted-foreground mt-1;
+    @apply opacity-70;
+  }
 }
 
 .bg-glass-bg {
