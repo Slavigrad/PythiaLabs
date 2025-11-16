@@ -36,6 +36,7 @@ export const DistancePlayground = () => {
   const [vector1, setVector1] = useState<Vector>({ x: 3, y: 4 });
   const [vector2, setVector2] = useState<Vector>({ x: 4, y: 3 });
   const [dragging, setDragging] = useState<"v1" | "v2" | null>(null);
+  const [hovering, setHovering] = useState<"v1" | "v2" | null>(null);
 
   const getValue = () => {
     switch (distanceType) {
@@ -67,17 +68,119 @@ export const DistancePlayground = () => {
     <section className="relative py-20 px-6">
       <div className="max-w-6xl mx-auto">
         <motion.div className="glass-card p-8 mb-8 text-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">Distance Playground</h2>
-          <p className="text-lg text-muted-foreground">Drag vectors to explore distance metrics</p>
+          <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent" style={{ fontSize: '52px' }}>Distance Playground</h2>
+          <p className="text-xl text-muted-foreground" style={{ fontSize: '22px' }}>Drag vectors to explore distance metrics</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <motion.div className="glass-card p-8" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-            <svg width="100%" height="400" viewBox="0 0 10 10" className="bg-background/30 rounded-lg" onMouseMove={handleMouseMove} onMouseUp={() => setDragging(null)} onMouseLeave={() => setDragging(null)}>
-              <motion.line x1="0" y1="10" x2={vector1.x} y2={10 - vector1.y} stroke="hsl(var(--primary))" strokeWidth="0.08" animate={{ x2: vector1.x, y2: 10 - vector1.y }} transition={{ type: "spring" }} />
-              <motion.circle cx={vector1.x} cy={10 - vector1.y} r="0.25" fill="hsl(var(--primary))" className="cursor-grab" onMouseDown={() => setDragging("v1")} whileHover={{ scale: 1.5 }} />
-              <motion.line x1="0" y1="10" x2={vector2.x} y2={10 - vector2.y} stroke="hsl(var(--accent))" strokeWidth="0.08" animate={{ x2: vector2.x, y2: 10 - vector2.y }} transition={{ type: "spring" }} />
-              <motion.circle cx={vector2.x} cy={10 - vector2.y} r="0.25" fill="hsl(var(--accent))" className="cursor-grab" onMouseDown={() => setDragging("v2")} whileHover={{ scale: 1.5 }} />
+            <div className="mb-4 flex items-center justify-center gap-3">
+              <span className="text-lg font-semibold text-muted-foreground">Vector</span>
+              <span className="px-3 py-1 rounded-full bg-primary/20 text-primary font-bold border border-primary/30">A</span>
+              <span className="text-lg font-semibold text-muted-foreground">vs</span>
+              <span className="px-3 py-1 rounded-full bg-accent/20 text-accent font-bold border border-accent/30">B</span>
+            </div>
+            <svg width="100%" height="500" viewBox="0 0 10 10" className="bg-background/30 rounded-2xl shadow-inner" onMouseMove={handleMouseMove} onMouseUp={() => setDragging(null)} onMouseLeave={() => setDragging(null)}>
+              <defs>
+                <filter id="glow-cyan" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="0.15" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+                <filter id="glow-purple" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="0.15" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {/* Vector A Line */}
+              <motion.line
+                x1="0" y1="10"
+                x2={vector1.x} y2={10 - vector1.y}
+                stroke="hsl(var(--primary))"
+                strokeWidth="0.08"
+                filter="url(#glow-cyan)"
+                animate={{ x2: vector1.x, y2: 10 - vector1.y }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              />
+
+              {/* Vector A Circle with enhanced glow halo */}
+              <motion.circle
+                cx={vector1.x} cy={10 - vector1.y}
+                r={hovering === "v1" || dragging === "v1" ? "0.52" : "0.4"}
+                fill="hsl(var(--primary)/0.3)"
+                filter="url(#glow-cyan)"
+                animate={{
+                  cx: vector1.x,
+                  cy: 10 - vector1.y,
+                  scale: dragging === "v1" ? 1.1 : 1
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              />
+              <motion.circle
+                cx={vector1.x} cy={10 - vector1.y}
+                r="0.4"
+                fill="hsl(var(--primary))"
+                className={dragging === "v1" ? "cursor-grabbing" : "cursor-grab"}
+                filter="url(#glow-cyan)"
+                onMouseDown={() => setDragging("v1")}
+                onMouseEnter={() => setHovering("v1")}
+                onMouseLeave={() => setHovering(null)}
+                animate={{
+                  cx: vector1.x,
+                  cy: 10 - vector1.y,
+                  scale: hovering === "v1" ? 2 : dragging === "v1" ? 1.1 : 1
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                whileHover={{ scale: 2 }}
+              />
+
+              {/* Vector B Line */}
+              <motion.line
+                x1="0" y1="10"
+                x2={vector2.x} y2={10 - vector2.y}
+                stroke="hsl(var(--accent))"
+                strokeWidth="0.08"
+                filter="url(#glow-purple)"
+                animate={{ x2: vector2.x, y2: 10 - vector2.y }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              />
+
+              {/* Vector B Circle with enhanced glow halo */}
+              <motion.circle
+                cx={vector2.x} cy={10 - vector2.y}
+                r={hovering === "v2" || dragging === "v2" ? "0.52" : "0.4"}
+                fill="hsl(var(--accent)/0.3)"
+                filter="url(#glow-purple)"
+                animate={{
+                  cx: vector2.x,
+                  cy: 10 - vector2.y,
+                  scale: dragging === "v2" ? 1.1 : 1
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              />
+              <motion.circle
+                cx={vector2.x} cy={10 - vector2.y}
+                r="0.4"
+                fill="hsl(var(--accent))"
+                className={dragging === "v2" ? "cursor-grabbing" : "cursor-grab"}
+                filter="url(#glow-purple)"
+                onMouseDown={() => setDragging("v2")}
+                onMouseEnter={() => setHovering("v2")}
+                onMouseLeave={() => setHovering(null)}
+                animate={{
+                  cx: vector2.x,
+                  cy: 10 - vector2.y,
+                  scale: hovering === "v2" ? 2 : dragging === "v2" ? 1.1 : 1
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                whileHover={{ scale: 2 }}
+              />
             </svg>
           </motion.div>
 
@@ -85,15 +188,15 @@ export const DistancePlayground = () => {
             <div className="glass-card p-6">
               <div className="flex gap-3">
                 {(["cosine", "euclidean", "dot"] as DistanceType[]).map((type) => (
-                  <motion.button key={type} onClick={() => setDistanceType(type)} className={`flex-1 py-2 px-4 rounded-lg ${distanceType === type ? "bg-primary text-primary-foreground" : "bg-muted/30"}`} whileHover={{ scale: 1.05 }}>
+                  <motion.button key={type} onClick={() => setDistanceType(type)} className={`flex-1 py-2 px-4 rounded-lg text-lg font-semibold ${distanceType === type ? "bg-primary text-primary-foreground" : "bg-muted/30"}`} style={{ fontSize: '19px' }} whileHover={{ scale: 1.05 }}>
                     {type.charAt(0).toUpperCase() + type.slice(1)}
                   </motion.button>
                 ))}
               </div>
             </div>
             <div className="glass-card p-6">
-              <motion.div className="text-5xl font-bold text-primary mb-4" key={getValue()} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>{getValue()}</motion.div>
-              <p className="text-sm text-muted-foreground">{getExplanation()}</p>
+              <motion.div className="font-bold text-primary mb-4" style={{ fontSize: '64px' }} key={getValue()} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>{getValue()}</motion.div>
+              <p className="text-lg text-muted-foreground" style={{ fontSize: '18px' }}>{getExplanation()}</p>
             </div>
             <div className="glass-card p-6">
               <div className="grid grid-cols-2 gap-2">
