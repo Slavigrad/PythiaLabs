@@ -185,10 +185,12 @@ const ExplanationCard = ({
         Why these {resultCount} results?
       </h4>
       <p className="text-sm text-muted-foreground leading-relaxed">
-        These candidates are closest to your query
-        <span className="font-mono text-primary"> "{queryText}" </span>
-        in the <span className="font-semibold">{embeddingDimension}-dimensional</span> embedding
-        space using <span className="font-semibold">cosine distance</span>.
+        Your query <span className="font-mono text-primary">"{queryText}"</span> was converted
+        into a <span className="font-semibold">{embeddingDimension}-dimensional</span> vector
+        (the large central bubble).
+        <br /><br />
+        These {resultCount} candidates are the <span className="font-semibold text-foreground">closest to your query</span> in
+        embedding space using <span className="font-semibold">cosine distance</span>.
         <br /><br />
         Closer positions = more semantically similar skills and experience.
       </p>
@@ -201,7 +203,77 @@ const ExplanationCard = ({
   );
 };
 
-// How to Read Info Card Component
+/**
+ * ==============================================================================
+ * EMBEDDING SPACE MAP - UX BEHAVIOR GUIDE
+ * ==============================================================================
+ *
+ * This visualization makes semantic similarity "drunk-proof" by using clear visual hierarchy.
+ *
+ * VISUAL HIERARCHY (from most to least important):
+ * ---------------------------------------------------
+ * 1. **Query Bubble (Center)**: Large central bubble with REDUCED glow (~35% less than before)
+ *    - Purpose: Represents the user's search query in embedding space
+ *    - Visual: Big size, moderate glow, labeled "Query: [text]"
+ *    - Never receives a rank badge
+ *
+ * 2. **Top 3 Results**: Bubbles with numeric badges (1, 2, 3)
+ *    - Purpose: The 3 nearest neighbors to the query
+ *    - Visual: Rank badges (teal pills) at top-right of bubble
+ *    - Connected to query with thin cyan lines
+ *    - Badge color: neutral teal (NOT role colors) to avoid confusion
+ *
+ * 3. **Other Candidates**: All remaining visible bubbles
+ *    - Purpose: Show broader landscape of talent
+ *    - Visual: Normal size, glow based on distance
+ *    - No rank badges, no connector lines
+ *
+ * BIDIRECTIONAL HOVER SYNC (Map ↔ Sidebar):
+ * ---------------------------------------------------
+ * When hovering ANY of these:
+ *   - A bubble on the map
+ *   - Its corresponding sidebar card
+ *   - The connector line
+ *
+ * ALL of these highlight simultaneously:
+ *   ✓ The bubble scales up and glows
+ *   ✓ The sidebar card gets teal ring and background
+ *   ✓ The connector line becomes brighter
+ *   ✓ All non-top-3 bubbles dim to 20% opacity
+ *
+ * DIMMING LOGIC:
+ * ---------------------------------------------------
+ * - When NO hover: All bubbles at 100% opacity
+ * - When hovering ANY top-3 bubble or sidebar card:
+ *   - Focused bubble: 100% opacity, scaled 1.8x
+ *   - Other top-3 bubbles: 100% opacity (normal)
+ *   - Non-top-3 bubbles: 20% opacity (dimmed)
+ *
+ * COLOR MEANINGS (kept separate for clarity):
+ * ---------------------------------------------------
+ * - **Role Colors** (React, Python, Java, etc.): Bubble fill and glow
+ * - **Rank Badge Color** (Teal): Independent of role, purely for ranking
+ * - **Glow Intensity**: Represents semantic distance (closer = brighter)
+ *
+ * HOW USERS SHOULD READ THIS:
+ * ---------------------------------------------------
+ * 1. Big central bubble = your search query
+ * 2. Numbered bubbles (1, 2, 3) = top matches
+ * 3. Lines = relationship between query and results
+ * 4. Color = role type
+ * 5. Glow + distance = semantic similarity
+ *
+ * EXAMPLE WALKTHROUGH ("Java developers in Zurich"):
+ * ---------------------------------------------------
+ * 1. Large glowing bubble in center labeled "Query: Java developers in Zurich"
+ * 2. Three bubbles nearby with badges "1", "2", "3" (Julia R., Emma K., Marco T.)
+ * 3. Thin cyan lines connecting query to these 3 bubbles
+ * 4. Hover Julia R.'s bubble → her sidebar card highlights, line brightens, others dim
+ * 5. Hover Emma K.'s sidebar card → her bubble scales up, line brightens, others dim
+ * ==============================================================================
+ */
+
+// How to Read Info Card Component - Drunk-proof numbered steps
 const HowToReadCard = () => {
   return (
     <motion.div
@@ -211,14 +283,23 @@ const HowToReadCard = () => {
       transition={{ delay: 1.0, duration: 0.4 }}
     >
       <h4 className="text-base font-semibold mb-3 text-accent flex items-center gap-2">
-        <span>💡</span> How to read this view
+        <span>💡</span> How to read this visualization
       </h4>
-      <div className="space-y-2 text-sm text-muted-foreground leading-relaxed">
+      <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
         <p>
-          <span className="font-semibold text-foreground">Your search query</span> is converted into an embedding vector and plotted as the large glowing bubble in the center.
+          <span className="font-bold text-foreground">1. Big central bubble</span> = your search query
         </p>
         <p>
-          <span className="font-semibold text-foreground">Closer bubbles</span> represent candidates with more semantically similar skills and experience based on cosine distance in vector space.
+          <span className="font-bold text-foreground">2. Numbered bubbles (1, 2, 3)</span> = the top 3 matches to your query
+        </p>
+        <p>
+          <span className="font-bold text-foreground">3. Lines connecting them</span> = showing the relationship between query and results
+        </p>
+        <p>
+          <span className="font-bold text-foreground">4. Bubble color</span> = role type (React, Python, Java, etc.)
+        </p>
+        <p>
+          <span className="font-bold text-foreground">5. Glow intensity + distance</span> = how semantically close the candidate is in embedding space
         </p>
       </div>
     </motion.div>
@@ -230,6 +311,8 @@ export const EmbeddingSpaceMap = () => {
   const [hoveredBubble, setHoveredBubble] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<TalentBubble | null>(null);
   const [hoveredLine, setHoveredLine] = useState<string | null>(null);
+  // Track which sidebar card is being hovered (by rank index 0-2, or null)
+  const [hoveredSidebarRank, setHoveredSidebarRank] = useState<number | null>(null);
   const [enabledRoles, setEnabledRoles] = useState<Set<RoleType>>(
     new Set(['react', 'python', 'ml', 'cloud', 'java', 'devops'])
   );
@@ -380,13 +463,23 @@ export const EmbeddingSpaceMap = () => {
               </button>
             </div>
 
-            {/* Legend Caption */}
+            {/* Legend Caption - Crystal clear explanation */}
             <div className="mt-6 pt-6 border-t border-glass-border/30">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                <span className="font-semibold text-foreground">Numbered bubbles (1, 2, 3)</span> are the top matches.
-                <br /><br />
-                <span className="font-semibold text-foreground">Brighter glow</span> = closer semantic distance to your query.
-              </p>
+              <h4 className="text-sm font-bold text-foreground mb-3">How to read the map:</h4>
+              <div className="space-y-2 text-sm text-muted-foreground leading-relaxed">
+                <p>
+                  <span className="font-semibold text-foreground">Large central bubble</span> = your search query
+                </p>
+                <p>
+                  <span className="font-semibold text-foreground">Numbered bubbles (1, 2, 3)</span> = top matches
+                </p>
+                <p>
+                  <span className="font-semibold text-foreground">Bubble color</span> = role type
+                </p>
+                <p>
+                  <span className="font-semibold text-foreground">Brighter glow + closer distance</span> = more semantically similar
+                </p>
+              </div>
             </div>
           </motion.div>
 
@@ -406,6 +499,7 @@ export const EmbeddingSpaceMap = () => {
                 transition: 'filter 0.3s ease-out, opacity 0.3s ease-out'
               }}
             >
+              {/* Connector lines from query to top 3 neighbors - highlight on map or sidebar hover */}
               <AnimatePresence>
                 {nearestNeighbors.map((neighbor, idx) => {
                   const midpoint = {
@@ -413,7 +507,10 @@ export const EmbeddingSpaceMap = () => {
                     y: (queryBubble.y + neighbor.y) / 2
                   };
                   const lineId = `line-${neighbor.id}`;
-                  const isHovered = hoveredLine === lineId;
+                  // Line is highlighted if: hovering the line itself, hovering the bubble, or hovering the sidebar card
+                  const isHovered = hoveredLine === lineId ||
+                                   hoveredBubble === neighbor.id ||
+                                   hoveredSidebarRank === idx;
 
                   return (
                     <g key={neighbor.id}>
@@ -431,7 +528,7 @@ export const EmbeddingSpaceMap = () => {
                         initial={{ pathLength: 0, opacity: 0 }}
                         animate={{
                           pathLength: isStageActive('lines') ? 1 : 0,
-                          opacity: isStageActive('lines') ? (isHovered ? 1 : 0.6) : 0
+                          opacity: isStageActive('lines') ? (isHovered ? 1 : 0.5) : 0
                         }}
                         exit={{ pathLength: 0, opacity: 0 }}
                         transition={{
@@ -451,11 +548,17 @@ export const EmbeddingSpaceMap = () => {
                 })}
               </AnimatePresence>
 
+              {/* Candidate bubbles with bidirectional hover sync (map ↔ sidebar) */}
               {visibleNodes.map((bubble, idx) => {
                 const isNearest = nearestIds.has(bubble.id);
                 const neighborRank = nearestNeighbors.findIndex(n => n.id === bubble.id);
-                const isHovered = hoveredBubble === bubble.id;
-                const shouldFade = hoveredBubble && !isHovered && !nearestIds.has(bubble.id);
+                // Bubble is highlighted if: directly hovered OR its sidebar card is hovered
+                const isHovered = hoveredBubble === bubble.id ||
+                                 (isNearest && hoveredSidebarRank === neighborRank);
+                // Dim non-top-3 bubbles when ANY top-3 bubble or sidebar card is being hovered
+                const anyTop3Hovered = hoveredBubble !== null && nearestIds.has(hoveredBubble) ||
+                                      hoveredSidebarRank !== null;
+                const shouldFade = anyTop3Hovered && !isHovered && !nearestIds.has(bubble.id);
                 const isSelected = selectedNode?.id === bubble.id;
 
                 const distance = calculateDistance(queryBubble.x, queryBubble.y, bubble.x, bubble.y);
@@ -508,7 +611,7 @@ export const EmbeddingSpaceMap = () => {
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{
                         scale: isStageActive('nodes') ? (isHovered || isSelected ? 1.8 : 1) : 0,
-                        opacity: isStageActive('nodes') ? (shouldFade ? 0.25 : 1) : 0,
+                        opacity: isStageActive('nodes') ? (shouldFade ? 0.2 : 1) : 0,
                         y: isStageActive('nodes') ? [displayY, displayY - 0.5, displayY] : displayY,
                         cx: displayX,
                         cy: displayY
@@ -615,9 +718,9 @@ export const EmbeddingSpaceMap = () => {
                 );
               })}
 
-              {/* Enhanced Query Bubble */}
+              {/* Enhanced Query Bubble - De-emphasized to avoid confusion with ranked results */}
               <g>
-                {/* Outer pulsating glow */}
+                {/* Outer pulsating glow - reduced intensity by ~35% to clarify this is the query, not a result */}
                 <motion.circle
                   cx={queryBubble.x}
                   cy={queryBubble.y}
@@ -625,7 +728,7 @@ export const EmbeddingSpaceMap = () => {
                   fill="hsl(var(--glow-cyan))"
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{
-                    opacity: isStageActive('query') ? [0.2, 0.5, 0.2] : 0,
+                    opacity: isStageActive('query') ? [0.12, 0.3, 0.12] : 0,
                     scale: isStageActive('query') ? 1 : 0
                   }}
                   transition={{
@@ -634,13 +737,13 @@ export const EmbeddingSpaceMap = () => {
                   }}
                 />
 
-                {/* Middle glow ring */}
+                {/* Middle glow ring - reduced opacity */}
                 <motion.circle
                   cx={queryBubble.x}
                   cy={queryBubble.y}
                   r="4.9"
                   fill="hsl(var(--accent))"
-                  opacity="0.4"
+                  opacity="0.25"
                   initial={{ scale: 0 }}
                   animate={{ scale: isStageActive('query') ? 1 : 0 }}
                   transition={{ delay: 1.9, type: "spring", stiffness: 120 }}
@@ -674,7 +777,7 @@ export const EmbeddingSpaceMap = () => {
               </g>
             </svg>
 
-            {/* Map Caption */}
+            {/* Map Caption - Explicit explanation */}
             <motion.div
               className="mt-4 text-center"
               initial={{ opacity: 0 }}
@@ -682,7 +785,8 @@ export const EmbeddingSpaceMap = () => {
               transition={{ delay: 3.0, duration: 0.4 }}
             >
               <p className="text-sm text-muted-foreground">
-                The large glowing bubble is your search query as an embedding in vector space.
+                <span className="font-semibold text-foreground">Large central bubble</span> = your search query as an embedding.{' '}
+                <span className="font-semibold text-foreground">Numbered bubbles around it</span> = the top 3 matching candidates.
               </p>
             </motion.div>
           </motion.div>
@@ -705,9 +809,11 @@ export const EmbeddingSpaceMap = () => {
             <h3 className="text-2xl font-semibold mb-6 text-foreground">
               Nearest Neighbors
             </h3>
+            {/* Nearest Neighbors list with bidirectional hover sync */}
             <div className="space-y-4">
               {nearestNeighbors.map((neighbor, idx) => {
-                const isHovered = hoveredBubble === neighbor.id;
+                // Card is highlighted if: its bubble is hovered OR the card itself is hovered
+                const isHovered = hoveredBubble === neighbor.id || hoveredSidebarRank === idx;
                 return (
                   <motion.div
                     key={neighbor.id}
@@ -719,8 +825,14 @@ export const EmbeddingSpaceMap = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 + idx * 0.1 }}
-                    onMouseEnter={() => setHoveredBubble(neighbor.id)}
-                    onMouseLeave={() => setHoveredBubble(null)}
+                    onMouseEnter={() => {
+                      setHoveredBubble(neighbor.id);
+                      setHoveredSidebarRank(idx);
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredBubble(null);
+                      setHoveredSidebarRank(null);
+                    }}
                   >
                     <div className="flex items-start gap-3">
                       {/* Rank Badge */}
