@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { AngleMarkers } from "./distance/AngleMarkers";
+import { CosineRangeLegend } from "./distance/CosineRangeLegend";
+import { PresetCard } from "./distance/PresetCard";
 
 type DistanceType = "cosine" | "euclidean" | "dot";
 
@@ -25,10 +28,34 @@ const calculateDotProduct = (v1: Vector, v2: Vector) => {
 };
 
 const presets = [
-  { name: "Highly Similar", v1: { x: 3, y: 4 }, v2: { x: 3.5, y: 4.2 } },
-  { name: "Opposite", v1: { x: 1, y: 4 }, v2: { x: 4, y: 1 } },
-  { name: "Identical", v1: { x: 3, y: 3 }, v2: { x: 3.1, y: 3.1 } },
-  { name: "Random", v1: { x: 2, y: 3.5 }, v2: { x: 4, y: 2 } },
+  {
+    name: "Highly Similar",
+    description: "~15° angle",
+    diagram: "similar" as const,
+    v1: { x: 3, y: 4 },
+    v2: { x: 3.5, y: 4.2 }
+  },
+  {
+    name: "Opposite",
+    description: "~160° angle",
+    diagram: "opposite" as const,
+    v1: { x: 1, y: 4 },
+    v2: { x: 4, y: 1 }
+  },
+  {
+    name: "Identical",
+    description: "0° angle",
+    diagram: "identical" as const,
+    v1: { x: 3, y: 3 },
+    v2: { x: 3.1, y: 3.1 }
+  },
+  {
+    name: "Random",
+    description: "~75° angle",
+    diagram: "random" as const,
+    v1: { x: 2, y: 3.5 },
+    v2: { x: 4, y: 2 }
+  },
 ];
 
 export const DistancePlayground = () => {
@@ -97,6 +124,9 @@ export const DistancePlayground = () => {
                   </feMerge>
                 </filter>
               </defs>
+
+              {/* Angle Markers - Radial reference grid */}
+              <AngleMarkers />
 
               {/* Vector A Line */}
               <motion.line
@@ -187,21 +217,56 @@ export const DistancePlayground = () => {
           <motion.div className="space-y-6" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
             <div className="glass-card p-6">
               <div className="flex gap-3">
-                {(["cosine", "euclidean", "dot"] as DistanceType[]).map((type) => (
-                  <motion.button key={type} onClick={() => setDistanceType(type)} className={`flex-1 py-2 px-4 rounded-lg text-lg font-semibold ${distanceType === type ? "bg-primary text-primary-foreground" : "bg-muted/30"}`} style={{ fontSize: '19px' }} whileHover={{ scale: 1.05 }}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </motion.button>
-                ))}
+                {(["cosine", "euclidean", "dot"] as DistanceType[]).map((type) => {
+                  const descriptions = {
+                    cosine: "Recommended for semantic meaning",
+                    euclidean: "Sensitive to magnitude",
+                    dot: "Dense inner-product scoring"
+                  };
+                  return (
+                    <motion.button
+                      key={type}
+                      onClick={() => setDistanceType(type)}
+                      className={`flex-1 py-2 px-4 rounded-lg text-lg font-semibold flex flex-col items-center ${
+                        distanceType === type ? "bg-primary text-primary-foreground" : "bg-muted/30"
+                      }`}
+                      style={{ fontSize: '19px' }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <span>{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                      <span className="metric-tab-description text-[10px] mt-1 font-normal">
+                        {descriptions[type]}
+                      </span>
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
             <div className="glass-card p-6">
               <motion.div className="font-bold text-primary mb-4" style={{ fontSize: '64px' }} key={getValue()} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>{getValue()}</motion.div>
               <p className="text-lg text-muted-foreground" style={{ fontSize: '18px' }}>{getExplanation()}</p>
+
+              {/* Cosine Range Legend - only show for cosine distance */}
+              {distanceType === "cosine" && (
+                <div className="mt-4">
+                  <CosineRangeLegend currentValue={parseFloat(getValue())} />
+                </div>
+              )}
             </div>
             <div className="glass-card p-6">
-              <div className="grid grid-cols-2 gap-2">
+              <h3 className="text-lg font-semibold mb-4 text-muted-foreground">Presets</h3>
+              <div className="grid grid-cols-2 gap-3">
                 {presets.map((preset) => (
-                  <motion.button key={preset.name} onClick={() => { setVector1(preset.v1); setVector2(preset.v2); }} className="py-2 px-3 text-sm rounded-lg bg-muted/30 hover:bg-primary/20" whileHover={{ scale: 1.05 }}>{preset.name}</motion.button>
+                  <PresetCard
+                    key={preset.name}
+                    name={preset.name}
+                    description={preset.description}
+                    diagram={preset.diagram}
+                    onSelect={() => {
+                      setVector1(preset.v1);
+                      setVector2(preset.v2);
+                    }}
+                  />
                 ))}
               </div>
             </div>
