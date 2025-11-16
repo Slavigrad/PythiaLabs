@@ -3,6 +3,11 @@ import { motion } from "framer-motion";
 import { AngleMarkers } from "./distance/AngleMarkers";
 import { CosineRangeLegend } from "./distance/CosineRangeLegend";
 import { PresetCard } from "./distance/PresetCard";
+import { DistanceArc } from "./distance/DistanceArc";
+import { VectorHandle } from "./distance/VectorHandle";
+import { useMetricTransition } from "@/hooks/useMetricTransition";
+import { useVectorSnap } from "@/hooks/useVectorSnap";
+import { useSemanticColor } from "@/hooks/useSemanticColor";
 
 type DistanceType = "cosine" | "euclidean" | "dot";
 
@@ -64,6 +69,11 @@ export const DistancePlayground = () => {
   const [vector2, setVector2] = useState<Vector>({ x: 4, y: 3 });
   const [dragging, setDragging] = useState<"v1" | "v2" | null>(null);
   const [hovering, setHovering] = useState<"v1" | "v2" | null>(null);
+
+  // Phase 3: Premium Polish & Interactions
+  const metricTransition = useMetricTransition(distanceType);
+  const { isSnapping, snapTarget, triggerSnap } = useVectorSnap();
+  const semanticColor = useSemanticColor(vector1, vector2);
 
   const getValue = () => {
     switch (distanceType) {
@@ -128,6 +138,13 @@ export const DistancePlayground = () => {
               {/* Angle Markers - Radial reference grid */}
               <AngleMarkers />
 
+              {/* Distance Arc - Only visible in Euclidean mode */}
+              <DistanceArc
+                v1={vector1}
+                v2={vector2}
+                visible={distanceType === "euclidean"}
+              />
+
               {/* Vector A Line */}
               <motion.line
                 x1="0" y1="10"
@@ -139,35 +156,19 @@ export const DistancePlayground = () => {
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               />
 
-              {/* Vector A Circle with enhanced glow halo */}
-              <motion.circle
-                cx={vector1.x} cy={10 - vector1.y}
-                r={hovering === "v1" || dragging === "v1" ? "0.52" : "0.4"}
-                fill="hsl(var(--primary)/0.3)"
-                filter="url(#glow-cyan)"
-                animate={{
-                  cx: vector1.x,
-                  cy: 10 - vector1.y,
-                  scale: dragging === "v1" ? 1.1 : 1
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              />
-              <motion.circle
-                cx={vector1.x} cy={10 - vector1.y}
-                r="0.4"
-                fill="hsl(var(--primary))"
-                className={dragging === "v1" ? "cursor-grabbing" : "cursor-grab"}
-                filter="url(#glow-cyan)"
-                onMouseDown={() => setDragging("v1")}
+              {/* Vector A Handle */}
+              <VectorHandle
+                vector={vector1}
+                color="hsl(var(--primary))"
+                label="A"
+                isDragging={dragging === "v1"}
+                isHovering={hovering === "v1"}
+                onDragStart={() => setDragging("v1")}
+                onDragEnd={() => setDragging(null)}
                 onMouseEnter={() => setHovering("v1")}
                 onMouseLeave={() => setHovering(null)}
-                animate={{
-                  cx: vector1.x,
-                  cy: 10 - vector1.y,
-                  scale: hovering === "v1" ? 2 : dragging === "v1" ? 1.1 : 1
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                whileHover={{ scale: 2 }}
+                isSnapping={isSnapping && (snapTarget === "v1" || snapTarget === "both")}
+                filterId="glow-cyan"
               />
 
               {/* Vector B Line */}
@@ -181,35 +182,19 @@ export const DistancePlayground = () => {
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               />
 
-              {/* Vector B Circle with enhanced glow halo */}
-              <motion.circle
-                cx={vector2.x} cy={10 - vector2.y}
-                r={hovering === "v2" || dragging === "v2" ? "0.52" : "0.4"}
-                fill="hsl(var(--accent)/0.3)"
-                filter="url(#glow-purple)"
-                animate={{
-                  cx: vector2.x,
-                  cy: 10 - vector2.y,
-                  scale: dragging === "v2" ? 1.1 : 1
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              />
-              <motion.circle
-                cx={vector2.x} cy={10 - vector2.y}
-                r="0.4"
-                fill="hsl(var(--accent))"
-                className={dragging === "v2" ? "cursor-grabbing" : "cursor-grab"}
-                filter="url(#glow-purple)"
-                onMouseDown={() => setDragging("v2")}
+              {/* Vector B Handle */}
+              <VectorHandle
+                vector={vector2}
+                color="hsl(var(--accent))"
+                label="B"
+                isDragging={dragging === "v2"}
+                isHovering={hovering === "v2"}
+                onDragStart={() => setDragging("v2")}
+                onDragEnd={() => setDragging(null)}
                 onMouseEnter={() => setHovering("v2")}
                 onMouseLeave={() => setHovering(null)}
-                animate={{
-                  cx: vector2.x,
-                  cy: 10 - vector2.y,
-                  scale: hovering === "v2" ? 2 : dragging === "v2" ? 1.1 : 1
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                whileHover={{ scale: 2 }}
+                isSnapping={isSnapping && (snapTarget === "v2" || snapTarget === "both")}
+                filterId="glow-purple"
               />
             </svg>
           </motion.div>
@@ -242,8 +227,26 @@ export const DistancePlayground = () => {
                 })}
               </div>
             </div>
-            <div className="glass-card p-6">
-              <motion.div className="font-bold text-primary mb-4" style={{ fontSize: '64px' }} key={getValue()} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>{getValue()}</motion.div>
+            <div className="glass-card p-6" style={{ backgroundColor: metricTransition.backgroundTint }}>
+              <motion.div
+                className="font-bold text-primary mb-4"
+                style={{
+                  fontSize: '64px',
+                  filter: metricTransition.phase === 'blurOut' ? 'blur(6px)' : 'blur(0px)',
+                  opacity: metricTransition.phase === 'blurOut' ? 0.6 : 1
+                }}
+                key={getValue()}
+                initial={{ scale: 0.8 }}
+                animate={{
+                  scale: metricTransition.phase === 'morph' ? [0.95, 1.1, 1] : 1
+                }}
+                transition={{
+                  duration: metricTransition.phase === 'morph' ? 0.4 : 0.3,
+                  ease: "easeOut"
+                }}
+              >
+                {getValue()}
+              </motion.div>
               <p className="text-lg text-muted-foreground" style={{ fontSize: '18px' }}>{getExplanation()}</p>
 
               {/* Cosine Range Legend - only show for cosine distance */}
@@ -263,8 +266,13 @@ export const DistancePlayground = () => {
                     description={preset.description}
                     diagram={preset.diagram}
                     onSelect={() => {
-                      setVector1(preset.v1);
-                      setVector2(preset.v2);
+                      // Trigger snap animation
+                      triggerSnap("both");
+                      // Set vectors with slight delay for snap effect
+                      setTimeout(() => {
+                        setVector1(preset.v1);
+                        setVector2(preset.v2);
+                      }, 100);
                     }}
                   />
                 ))}
