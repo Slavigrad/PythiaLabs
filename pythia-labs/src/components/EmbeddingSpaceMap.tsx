@@ -40,8 +40,8 @@ const syntheticData: TalentBubble[] = [
     role: "Senior Python Engineer",
     roleType: "python",
     location: "Barcelona",
-    x: 30,
-    y: 45,
+    x: 32,
+    y: 46,
     skillSet: ["Python", "Django", "FastAPI", "PostgreSQL"],
     availability: true,
     type: "candidate"
@@ -52,8 +52,8 @@ const syntheticData: TalentBubble[] = [
     role: "Java Developer",
     roleType: "java",
     location: "Zurich",
-    x: 65,
-    y: 35,
+    x: 67,
+    y: 36,
     skillSet: ["Java", "Spring Boot", "Microservices"],
     availability: false,
     type: "candidate"
@@ -64,8 +64,8 @@ const syntheticData: TalentBubble[] = [
     role: "ML Engineer",
     roleType: "ml",
     location: "Berlin",
-    x: 70,
-    y: 55,
+    x: 72,
+    y: 56,
     skillSet: ["Python", "TensorFlow", "PyTorch", "MLOps"],
     availability: true,
     type: "candidate"
@@ -76,8 +76,8 @@ const syntheticData: TalentBubble[] = [
     role: "AWS Cloud Engineer",
     roleType: "cloud",
     location: "Lisbon",
-    x: 45,
-    y: 65,
+    x: 47,
+    y: 66,
     skillSet: ["AWS", "Terraform", "Kubernetes", "Docker"],
     availability: true,
     type: "candidate"
