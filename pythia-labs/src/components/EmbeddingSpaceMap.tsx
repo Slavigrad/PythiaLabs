@@ -490,6 +490,66 @@ export const EmbeddingSpaceMap = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
+            {/* Fixed Tooltip Area at Top Center - Always reserves space */}
+            <div className="mx-auto mb-4 px-6 py-4 rounded-xl bg-background/80 backdrop-blur-md border border-accent/30 shadow-lg min-h-[100px] flex items-center justify-center"
+              style={{
+                boxShadow: hoveredBubble
+                  ? '0 0 20px hsl(var(--glow-cyan) / 0.3), 0 4px 12px rgba(0,0,0,0.4)'
+                  : '0 0 10px hsl(var(--glow-cyan) / 0.1), 0 2px 8px rgba(0,0,0,0.2)'
+              }}
+            >
+              <AnimatePresence mode="wait">
+                {hoveredBubble ? (() => {
+                  // Find the hovered bubble data
+                  const hoveredData = syntheticData.find(b => b.id === hoveredBubble);
+                  if (!hoveredData) return null;
+
+                  // Calculate distance for display
+                  const distance = calculateDistance(
+                    queryBubble.x,
+                    queryBubble.y,
+                    hoveredData.x,
+                    hoveredData.y
+                  );
+
+                  return (
+                    <motion.div
+                      key={hoveredBubble}
+                      className="flex flex-col items-center gap-1 w-full"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                    >
+                      <h4 className="text-lg font-bold text-foreground">
+                        {hoveredData.name}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {hoveredData.role}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {hoveredData.location}
+                      </p>
+                      <p className="text-xs text-accent font-mono mt-1">
+                        Distance: {distance.toFixed(2)}
+                      </p>
+                    </motion.div>
+                  );
+                })() : (
+                  <motion.p
+                    key="placeholder"
+                    className="text-sm text-muted-foreground/50 italic"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    Hover over a candidate bubble to see details
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+
             <svg
               className="w-full h-full relative"
               viewBox="0 0 100 100"
@@ -666,54 +726,6 @@ export const EmbeddingSpaceMap = () => {
                         </motion.text>
                       </g>
                     )}
-
-                    <AnimatePresence>
-                      {isHovered && (
-                        <motion.g
-                          initial={{ opacity: 0, y: 2 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 2 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <rect
-                            x={bubble.x - 11}
-                            y={bubble.y - 13}
-                            width="22"
-                            height="10"
-                            rx="1.2"
-                            fill="hsl(var(--background))"
-                            stroke="hsl(var(--glass-border))"
-                            strokeWidth="0.3"
-                            opacity="0.95"
-                            filter="drop-shadow(0 0 2px hsl(var(--glow-cyan)))"
-                          />
-                          <text
-                            x={bubble.x}
-                            y={bubble.y - 9.5}
-                            textAnchor="middle"
-                            className="text-[2px] font-semibold fill-foreground"
-                          >
-                            {bubble.name}
-                          </text>
-                          <text
-                            x={bubble.x}
-                            y={bubble.y - 7}
-                            textAnchor="middle"
-                            className="text-[1.5px] fill-muted-foreground"
-                          >
-                            {bubble.role}
-                          </text>
-                          <text
-                            x={bubble.x}
-                            y={bubble.y - 5}
-                            textAnchor="middle"
-                            className="text-[1.4px] fill-muted-foreground"
-                          >
-                            {bubble.location}
-                          </text>
-                        </motion.g>
-                      )}
-                    </AnimatePresence>
                   </g>
                 );
               })}
