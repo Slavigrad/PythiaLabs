@@ -192,6 +192,18 @@ All colors MUST be HSL.
     backdrop-filter: blur(20px);
   }
 
+  /* ===== Info Card ===== */
+  .info-card {
+    @apply p-6 mt-6 rounded-lg;
+    @apply border border-glass-border/40;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary) / 0.1),
+      hsl(var(--accent) / 0.05)
+    );
+    backdrop-filter: blur(20px);
+  }
+
   /* ===== Role Badge ===== */
   .role-badge {
     @apply px-2 py-1 rounded-md text-xs font-semibold;
