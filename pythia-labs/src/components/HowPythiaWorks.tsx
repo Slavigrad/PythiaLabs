@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Database, Sparkles, TrendingUp, Cpu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { EmbeddingPipelineVisualization } from "./EmbeddingPipelineVisualization";
 
 export const HowPythiaWorks = () => {
   const [playingPipeline, setPlayingPipeline] = useState(false);
@@ -74,6 +75,13 @@ export const HowPythiaWorks = () => {
             {playingPipeline ? "Playing Pipeline..." : "▶ Play the Pipeline"}
           </motion.button>
         </motion.div>
+
+        {/* Visual Pipeline Representation */}
+        <AnimatePresence>
+          {playingPipeline && (
+            <EmbeddingPipelineVisualization isPlaying={playingPipeline} />
+          )}
+        </AnimatePresence>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {steps.map((step, idx) => {
