@@ -27,34 +27,37 @@ export const EmbeddingPipelineVisualization = ({ isPlaying }: { isPlaying: boole
     }
 
     const runPipeline = async () => {
-      // Stage 1: Query Input with typewriter effect
+      // Stage 1: Query Input with typewriter effect (slower for dramatic effect)
       setStage('query-input');
       for (let i = 0; i <= query.length; i++) {
         setDisplayedQuery(query.slice(0, i));
-        await new Promise(resolve => setTimeout(resolve, 60));
+        await new Promise(resolve => setTimeout(resolve, 80));
       }
 
-      await new Promise(resolve => setTimeout(resolve, 600));
+      // Hold on the query so people can read it
+      await new Promise(resolve => setTimeout(resolve, 1200));
 
-      // Stage 2: Transforming
+      // Stage 2: Transforming (particles flowing)
       setStage('transforming');
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 2500));
 
-      // Stage 3: Embedding model processing
+      // Stage 3: Embedding model processing (the brain thinking)
       setStage('embedding');
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3500));
 
-      // Stage 4: Vector output with cascading numbers
+      // Stage 4: Vector output with cascading numbers (slower reveal)
       setStage('vector-output');
       for (let i = 0; i <= fullVector.length; i++) {
         setDisplayedVector(fullVector.slice(0, i));
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
 
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Hold on the vector output so people can see the numbers
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Stage 5: Complete
+      // Stage 5: Complete - and STAY HERE so they can appreciate it!
       setStage('complete');
+      // NO auto-close! Let them savor the masterpiece
     };
 
     runPipeline();

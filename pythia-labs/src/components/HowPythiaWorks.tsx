@@ -40,11 +40,19 @@ export const HowPythiaWorks = () => {
 
   const playPipeline = async () => {
     setPlayingPipeline(true);
+
+    // Let the visual pipeline run its full course (~12 seconds)
+    // The visualization will handle its own timing
     for (let i = 0; i < steps.length; i++) {
       setActiveStep(i);
       await new Promise(resolve => setTimeout(resolve, 1500));
     }
     setActiveStep(null);
+
+    // Keep the visualization visible for much longer so people can appreciate it!
+    // Extended from immediate close to 15 seconds hold time
+    await new Promise(resolve => setTimeout(resolve, 15000));
+
     setPlayingPipeline(false);
   };
 
