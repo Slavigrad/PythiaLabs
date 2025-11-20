@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, TrendingUp, Calculator, Users, Sparkles } from "lucide-react";
 import { Canvas, useFrame } from "@react-three/fiber";
@@ -33,10 +33,14 @@ const VectorArrow = ({
     }
   });
 
-  const length = Math.sqrt(direction[0] ** 2 + direction[1] ** 2 + direction[2] ** 2);
-  const dir = new THREE.Vector3(...direction).normalize();
-  const quaternion = new THREE.Quaternion();
-  quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+  // Memoize calculations to prevent infinite growth
+  const { length, quaternion } = useMemo(() => {
+    const len = Math.sqrt(direction[0] ** 2 + direction[1] ** 2 + direction[2] ** 2);
+    const dir = new THREE.Vector3(...direction).normalize();
+    const quat = new THREE.Quaternion();
+    quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+    return { length: len, quaternion: quat };
+  }, [direction[0], direction[1], direction[2]]);
 
   return (
     <group ref={groupRef} position={position}>
