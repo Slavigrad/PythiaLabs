@@ -5,6 +5,7 @@ import { EmbeddingPipelineVisualization } from "./EmbeddingPipelineVisualization
 import { TransformationChamber } from "./TransformationChamber";
 import { VectorVault } from "./VectorVault";
 import { DistancePlaygroundModal } from "./DistancePlaygroundModal";
+import { NeuralCathedral } from "./NeuralCathedral";
 
 export const HowPythiaWorks = () => {
   const [playingPipeline, setPlayingPipeline] = useState(false);
@@ -117,7 +118,8 @@ export const HowPythiaWorks = () => {
                   // Card 1 (idx 0) opens the Transformation Chamber
                   // Card 2 (idx 1) opens the Vector Vault
                   // Card 3 (idx 2) opens the Distance Playground
-                  if (idx === 0 || idx === 1 || idx === 2) {
+                  // Card 4 (idx 3) opens the Neural Cathedral
+                  if (idx === 0 || idx === 1 || idx === 2 || idx === 3) {
                     setSelectedStepModal(idx);
                   }
                 }}
@@ -261,6 +263,22 @@ export const HowPythiaWorks = () => {
                         </p>
                       </motion.div>
                     )}
+
+                    {/* Interactive hint for Card 4 */}
+                    {idx === 3 && (
+                      <motion.div
+                        className="mt-3 text-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.6, duration: 0.8 }}
+                      >
+                        <p className="text-xs text-primary font-semibold flex items-center justify-center gap-2">
+                          <Cpu className="w-3 h-3 animate-pulse" />
+                          Click to explore the model
+                          <Cpu className="w-3 h-3 animate-pulse" />
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
 
@@ -308,6 +326,9 @@ export const HowPythiaWorks = () => {
         )}
         {selectedStepModal === 2 && (
           <DistancePlaygroundModal onClose={() => setSelectedStepModal(null)} />
+        )}
+        {selectedStepModal === 3 && (
+          <NeuralCathedral onClose={() => setSelectedStepModal(null)} />
         )}
       </AnimatePresence>
     </section>
