@@ -2,10 +2,15 @@ import { useState } from "react";
 import { Database, Sparkles, TrendingUp, Cpu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EmbeddingPipelineVisualization } from "./EmbeddingPipelineVisualization";
+import { TransformationChamber } from "./TransformationChamber";
+import { VectorVault } from "./VectorVault";
+import { DistancePlaygroundModal } from "./DistancePlaygroundModal";
+import { NeuralCathedral } from "./NeuralCathedral";
 
 export const HowPythiaWorks = () => {
   const [playingPipeline, setPlayingPipeline] = useState(false);
   const [activeStep, setActiveStep] = useState<number | null>(null);
+  const [selectedStepModal, setSelectedStepModal] = useState<number | null>(null);
 
   const steps = [
     {
@@ -99,16 +104,25 @@ export const HowPythiaWorks = () => {
             return (
               <motion.div
                 key={idx}
-                className={`glass-card p-8 glass-card-hover ${isActive ? 'ring-2 ring-primary shadow-lg shadow-primary/50' : ''}`}
+                className={`glass-card p-8 glass-card-hover cursor-pointer ${isActive ? 'ring-2 ring-primary shadow-lg shadow-primary/50' : ''}`}
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ 
+                transition={{
                   duration: 0.6,
                   delay: idx * 0.15,
                   ease: "easeOut"
                 }}
                 whileHover={{ scale: 1.02 }}
+                onClick={() => {
+                  // Card 1 (idx 0) opens the Transformation Chamber
+                  // Card 2 (idx 1) opens the Vector Vault
+                  // Card 3 (idx 2) opens the Distance Playground
+                  // Card 4 (idx 3) opens the Neural Cathedral
+                  if (idx === 0 || idx === 1 || idx === 2 || idx === 3) {
+                    setSelectedStepModal(idx);
+                  }
+                }}
               >
                 <div className="flex items-start gap-4">
                   <motion.div
@@ -161,7 +175,7 @@ export const HowPythiaWorks = () => {
                     >
                       {step.description}
                     </motion.p>
-                    <motion.div 
+                    <motion.div
                       className="glass-card p-3 bg-muted/30"
                       initial={{ opacity: 0, scale: 0.95 }}
                       whileInView={{ opacity: 1, scale: 1 }}
@@ -201,6 +215,70 @@ export const HowPythiaWorks = () => {
                         )}
                       </AnimatePresence>
                     </motion.div>
+
+                    {/* Interactive hint for Card 1 */}
+                    {idx === 0 && (
+                      <motion.div
+                        className="mt-3 text-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1, duration: 0.8 }}
+                      >
+                        <p className="text-xs text-primary font-semibold flex items-center justify-center gap-2">
+                          <Sparkles className="w-3 h-3 animate-pulse" />
+                          Click to explore the transformation
+                          <Sparkles className="w-3 h-3 animate-pulse" />
+                        </p>
+                      </motion.div>
+                    )}
+
+                    {/* Interactive hint for Card 2 */}
+                    {idx === 1 && (
+                      <motion.div
+                        className="mt-3 text-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.2, duration: 0.8 }}
+                      >
+                        <p className="text-xs text-accent font-semibold flex items-center justify-center gap-2">
+                          <Database className="w-3 h-3 animate-pulse" />
+                          Click to see vectors in action
+                          <Database className="w-3 h-3 animate-pulse" />
+                        </p>
+                      </motion.div>
+                    )}
+
+                    {/* Interactive hint for Card 3 */}
+                    {idx === 2 && (
+                      <motion.div
+                        className="mt-3 text-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.4, duration: 0.8 }}
+                      >
+                        <p className="text-xs text-secondary font-semibold flex items-center justify-center gap-2">
+                          <TrendingUp className="w-3 h-3 animate-pulse" />
+                          Click to play with distance & similarity
+                          <TrendingUp className="w-3 h-3 animate-pulse" />
+                        </p>
+                      </motion.div>
+                    )}
+
+                    {/* Interactive hint for Card 4 */}
+                    {idx === 3 && (
+                      <motion.div
+                        className="mt-3 text-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.6, duration: 0.8 }}
+                      >
+                        <p className="text-xs text-primary font-semibold flex items-center justify-center gap-2">
+                          <Cpu className="w-3 h-3 animate-pulse" />
+                          Click to explore the model
+                          <Cpu className="w-3 h-3 animate-pulse" />
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
 
@@ -222,7 +300,7 @@ export const HowPythiaWorks = () => {
           })}
         </div>
 
-        <motion.div 
+        <motion.div
           className="mt-12 glass-card p-8 text-center"
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -231,12 +309,28 @@ export const HowPythiaWorks = () => {
         >
           <h3 className="text-2xl font-bold mb-4 text-foreground">Educational Demo Only</h3>
           <p className="text-muted-foreground max-w-3xl mx-auto">
-            This is a conceptual demonstration using synthetic, anonymous IT-HR scenarios. 
-            All data is completely fictional and used for visualization purposes only. 
+            This is a conceptual demonstration using synthetic, anonymous IT-HR scenarios.
+            All data is completely fictional and used for visualization purposes only.
             The real Pythia platform processes actual talent profiles with full privacy and security.
           </p>
         </motion.div>
       </div>
+
+      {/* Interactive Modals */}
+      <AnimatePresence>
+        {selectedStepModal === 0 && (
+          <TransformationChamber onClose={() => setSelectedStepModal(null)} />
+        )}
+        {selectedStepModal === 1 && (
+          <VectorVault onClose={() => setSelectedStepModal(null)} />
+        )}
+        {selectedStepModal === 2 && (
+          <DistancePlaygroundModal onClose={() => setSelectedStepModal(null)} />
+        )}
+        {selectedStepModal === 3 && (
+          <NeuralCathedral onClose={() => setSelectedStepModal(null)} />
+        )}
+      </AnimatePresence>
     </section>
   );
 };
