@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EmbeddingPipelineVisualization } from "./EmbeddingPipelineVisualization";
 import { TransformationChamber } from "./TransformationChamber";
 import { VectorVault } from "./VectorVault";
+import { DistancePlaygroundModal } from "./DistancePlaygroundModal";
 
 export const HowPythiaWorks = () => {
   const [playingPipeline, setPlayingPipeline] = useState(false);
@@ -115,7 +116,8 @@ export const HowPythiaWorks = () => {
                 onClick={() => {
                   // Card 1 (idx 0) opens the Transformation Chamber
                   // Card 2 (idx 1) opens the Vector Vault
-                  if (idx === 0 || idx === 1) {
+                  // Card 3 (idx 2) opens the Distance Playground
+                  if (idx === 0 || idx === 1 || idx === 2) {
                     setSelectedStepModal(idx);
                   }
                 }}
@@ -243,6 +245,22 @@ export const HowPythiaWorks = () => {
                         </p>
                       </motion.div>
                     )}
+
+                    {/* Interactive hint for Card 3 */}
+                    {idx === 2 && (
+                      <motion.div
+                        className="mt-3 text-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.4, duration: 0.8 }}
+                      >
+                        <p className="text-xs text-secondary font-semibold flex items-center justify-center gap-2">
+                          <TrendingUp className="w-3 h-3 animate-pulse" />
+                          Click to play with distance & similarity
+                          <TrendingUp className="w-3 h-3 animate-pulse" />
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
 
@@ -287,6 +305,9 @@ export const HowPythiaWorks = () => {
         )}
         {selectedStepModal === 1 && (
           <VectorVault onClose={() => setSelectedStepModal(null)} />
+        )}
+        {selectedStepModal === 2 && (
+          <DistancePlaygroundModal onClose={() => setSelectedStepModal(null)} />
         )}
       </AnimatePresence>
     </section>
