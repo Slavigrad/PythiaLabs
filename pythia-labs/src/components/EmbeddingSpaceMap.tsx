@@ -205,7 +205,7 @@ const ExplanationCard = ({
 
 /**
  * ==============================================================================
- * EMBEDDING SPACE MAP - UX BEHAVIOR GUIDE (PHASE 1 CLARITY UPDATE)
+ * EMBEDDING SPACE MAP - UX BEHAVIOR GUIDE (PHASE 1 + 2 COMPLETE)
  * ==============================================================================
  *
  * This visualization makes semantic similarity "drunk-proof" by using clear visual hierarchy.
@@ -216,13 +216,21 @@ const ExplanationCard = ({
  * - Replaced glow intensity with stroke width for distance encoding
  * - All visible bubbles are now hoverable!
  *
+ * ✅ PHASE 2 ENHANCEMENTS APPLIED:
+ * - Query bubble is now a DIAMOND shape (rotated square) - unmistakable!
+ * - Added search icon (🔍) inside query - purpose is crystal clear
+ * - Enlarged label (3px font) with background box - highly readable
+ * - Pulsing glow ring around query - draws attention without confusion
+ *
  * VISUAL HIERARCHY (from most to least important):
  * ---------------------------------------------------
- * 1. **Query Bubble (Center)**: Large central bubble
+ * 1. **Query Bubble (Center)**: DIAMOND-SHAPED (not a circle!)
  *    - Purpose: Represents the user's search query in embedding space
- *    - Visual: Big size, cyan color, labeled "Query: [text]"
+ *    - Visual: Diamond/square rotated 45°, cyan color, search icon inside
+ *    - Label: "🎯 [query text]" above the diamond with background box
  *    - Never receives a rank badge
  *    - NOT hoverable (it's the reference point, not a result)
+ *    - INSTANTLY recognizable as different from candidate bubbles
  *
  * 2. **Top 3 Results**: Bubbles with numeric badges (1, 2, 3)
  *    - Purpose: The 3 nearest neighbors to the query
@@ -303,10 +311,10 @@ const HowToReadCard = () => {
       </h4>
       <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
         <p>
-          <span className="font-bold text-foreground">1. Big central bubble</span> = your search query
+          <span className="font-bold text-foreground">1. Diamond shape with 🔍 icon</span> = your search query (not a candidate!)
         </p>
         <p>
-          <span className="font-bold text-foreground">2. Numbered bubbles (1, 2, 3)</span> = the top 3 matches to your query
+          <span className="font-bold text-foreground">2. Round bubbles with numbers (1, 2, 3)</span> = the top 3 matching candidates
         </p>
         <p>
           <span className="font-bold text-foreground">3. Lines connecting them</span> = showing the relationship between query and results
@@ -484,10 +492,10 @@ export const EmbeddingSpaceMap = () => {
               <h4 className="text-sm font-bold text-foreground mb-3">How to read the map:</h4>
               <div className="space-y-2 text-sm text-muted-foreground leading-relaxed">
                 <p>
-                  <span className="font-semibold text-foreground">Large central bubble</span> = your search query
+                  <span className="font-semibold text-foreground">Diamond with 🔍</span> = your search query
                 </p>
                 <p>
-                  <span className="font-semibold text-foreground">Numbered bubbles (1, 2, 3)</span> = top matches
+                  <span className="font-semibold text-foreground">Round bubbles (1, 2, 3)</span> = top matches
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">Bubble color</span> = role type
@@ -742,62 +750,127 @@ export const EmbeddingSpaceMap = () => {
                 );
               })}
 
-              {/* Enhanced Query Bubble - De-emphasized to avoid confusion with ranked results */}
+              {/* 🎯 PHASE 2: DIAMOND QUERY BUBBLE - Unmistakably Different! */}
               <g>
-                {/* Outer pulsating glow - reduced intensity by ~35% to clarify this is the query, not a result */}
+                {/* Outer pulsating glow ring - subtle attention grabber */}
                 <motion.circle
                   cx={queryBubble.x}
                   cy={queryBubble.y}
-                  r="7"
-                  fill="hsl(var(--glow-cyan))"
+                  r="9"
+                  fill="none"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="0.3"
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{
-                    opacity: isStageActive('query') ? [0.12, 0.3, 0.12] : 0,
+                    opacity: isStageActive('query') ? [0.2, 0.6, 0.2] : 0,
+                    r: isStageActive('query') ? [8, 10, 8] : 9,
                     scale: isStageActive('query') ? 1 : 0
                   }}
                   transition={{
-                    opacity: { duration: 1.5, repeat: Infinity },
+                    opacity: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                    r: { duration: 3, repeat: Infinity, ease: "easeInOut" },
                     scale: { delay: 1.8, type: "spring", stiffness: 100 }
                   }}
                 />
 
-                {/* Middle glow ring - reduced opacity */}
-                <motion.circle
-                  cx={queryBubble.x}
-                  cy={queryBubble.y}
-                  r="4.9"
-                  fill="hsl(var(--accent))"
-                  opacity="0.25"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: isStageActive('query') ? 1 : 0 }}
-                  transition={{ delay: 1.9, type: "spring", stiffness: 120 }}
+                {/* Diamond/Square shape - ROTATED 45° for instant recognition */}
+                <motion.rect
+                  x={queryBubble.x - 4.5}
+                  y={queryBubble.y - 4.5}
+                  width="9"
+                  height="9"
+                  fill="hsl(var(--primary) / 0.25)"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="0.8"
+                  transform={`rotate(45 ${queryBubble.x} ${queryBubble.y})`}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{
+                    scale: isStageActive('query') ? 1 : 0,
+                    opacity: isStageActive('query') ? [0.9, 1, 0.9] : 0
+                  }}
+                  transition={{
+                    scale: { delay: 1.9, type: "spring", stiffness: 120 },
+                    opacity: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                  }}
                 />
 
-                {/* Core node */}
-                <motion.circle
-                  cx={queryBubble.x}
-                  cy={queryBubble.y}
-                  r="3.5"
-                  fill="hsl(var(--accent))"
-                  stroke="hsl(var(--glow-cyan))"
-                  strokeWidth="0.6"
+                {/* Inner glow for depth */}
+                <motion.rect
+                  x={queryBubble.x - 3}
+                  y={queryBubble.y - 3}
+                  width="6"
+                  height="6"
+                  fill="hsl(var(--accent) / 0.3)"
+                  stroke="none"
+                  transform={`rotate(45 ${queryBubble.x} ${queryBubble.y})`}
                   initial={{ scale: 0 }}
                   animate={{ scale: isStageActive('query') ? 1 : 0 }}
                   transition={{ delay: 2.0, type: "spring", stiffness: 200, damping: 15 }}
                 />
 
-                {/* Query label above bubble */}
-                <motion.text
-                  x={queryBubble.x}
-                  y={queryBubble.y - 10}
-                  textAnchor="middle"
-                  className="text-[2px] font-bold fill-accent"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: isStageActive('query') ? 1 : 0 }}
-                  transition={{ delay: 2.4 }}
+                {/* 🔍 Search Icon - Makes purpose crystal clear */}
+                <motion.g
+                  transform={`translate(${queryBubble.x}, ${queryBubble.y})`}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{
+                    scale: isStageActive('query') ? 1 : 0,
+                    opacity: isStageActive('query') ? 1 : 0
+                  }}
+                  transition={{ delay: 2.1, type: "spring", stiffness: 150 }}
                 >
-                  Query: "{queries[selectedQuery].label}"
-                </motion.text>
+                  {/* Magnifying glass circle */}
+                  <circle
+                    cx="-0.5"
+                    cy="-0.5"
+                    r="1.5"
+                    fill="none"
+                    stroke="hsl(var(--accent))"
+                    strokeWidth="0.4"
+                  />
+                  {/* Magnifying glass handle */}
+                  <line
+                    x1="0.5"
+                    y1="0.5"
+                    x2="1.5"
+                    y2="1.5"
+                    stroke="hsl(var(--accent))"
+                    strokeWidth="0.4"
+                    strokeLinecap="round"
+                  />
+                </motion.g>
+
+                {/* Enhanced Query Label - Larger, more readable, with background */}
+                <motion.g
+                  initial={{ opacity: 0, y: 2 }}
+                  animate={{
+                    opacity: isStageActive('query') ? 1 : 0,
+                    y: isStageActive('query') ? 0 : 2
+                  }}
+                  transition={{ delay: 2.4, duration: 0.4 }}
+                >
+                  {/* Label background box for readability */}
+                  <rect
+                    x={queryBubble.x - 20}
+                    y={queryBubble.y - 15}
+                    width="40"
+                    height="5"
+                    fill="hsl(var(--background) / 0.9)"
+                    stroke="hsl(var(--primary) / 0.3)"
+                    strokeWidth="0.2"
+                    rx="1"
+                  />
+
+                  {/* Label text - LARGER and BOLDER */}
+                  <text
+                    x={queryBubble.x}
+                    y={queryBubble.y - 11.5}
+                    textAnchor="middle"
+                    className="fill-primary font-bold pointer-events-none"
+                    style={{ fontSize: '3px', letterSpacing: '0.05px' }}
+                  >
+                    🎯 {queries[selectedQuery].label}
+                  </text>
+                </motion.g>
               </g>
             </svg>
 
@@ -809,9 +882,9 @@ export const EmbeddingSpaceMap = () => {
               transition={{ delay: 3.0, duration: 0.4 }}
             >
               <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">Large central bubble</span> = your search query as an embedding.{' '}
-                <span className="font-semibold text-foreground">Numbered bubbles around it</span> = the top 3 matching candidates.{' '}
-                <span className="font-semibold text-foreground">Hover any bubble</span> to see details.
+                <span className="font-semibold text-primary">Diamond shape with 🔍</span> = your search query as an embedding.{' '}
+                <span className="font-semibold text-foreground">Round bubbles with numbers</span> = the top 3 matching candidates.{' '}
+                <span className="font-semibold text-accent">Hover any bubble</span> to see details.
               </p>
             </motion.div>
           </motion.div>
