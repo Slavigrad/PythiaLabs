@@ -205,38 +205,47 @@ const ExplanationCard = ({
 
 /**
  * ==============================================================================
- * EMBEDDING SPACE MAP - UX BEHAVIOR GUIDE
+ * EMBEDDING SPACE MAP - UX BEHAVIOR GUIDE (PHASE 1 CLARITY UPDATE)
  * ==============================================================================
  *
  * This visualization makes semantic similarity "drunk-proof" by using clear visual hierarchy.
  *
+ * ✅ PHASE 1 FIXES APPLIED:
+ * - Removed confusing non-interactive glow halos
+ * - Expanded hover zones (5.0 radius) for easier interaction
+ * - Replaced glow intensity with stroke width for distance encoding
+ * - All visible bubbles are now hoverable!
+ *
  * VISUAL HIERARCHY (from most to least important):
  * ---------------------------------------------------
- * 1. **Query Bubble (Center)**: Large central bubble with REDUCED glow (~35% less than before)
+ * 1. **Query Bubble (Center)**: Large central bubble
  *    - Purpose: Represents the user's search query in embedding space
- *    - Visual: Big size, moderate glow, labeled "Query: [text]"
+ *    - Visual: Big size, cyan color, labeled "Query: [text]"
  *    - Never receives a rank badge
+ *    - NOT hoverable (it's the reference point, not a result)
  *
  * 2. **Top 3 Results**: Bubbles with numeric badges (1, 2, 3)
  *    - Purpose: The 3 nearest neighbors to the query
  *    - Visual: Rank badges (teal pills) at top-right of bubble
  *    - Connected to query with thin cyan lines
  *    - Badge color: neutral teal (NOT role colors) to avoid confusion
+ *    - FULLY HOVERABLE with expanded hover zones
  *
  * 3. **Other Candidates**: All remaining visible bubbles
  *    - Purpose: Show broader landscape of talent
- *    - Visual: Normal size, glow based on distance
+ *    - Visual: Normal size, stroke width based on distance
  *    - No rank badges, no connector lines
+ *    - FULLY HOVERABLE with expanded hover zones
  *
  * BIDIRECTIONAL HOVER SYNC (Map ↔ Sidebar):
  * ---------------------------------------------------
  * When hovering ANY of these:
- *   - A bubble on the map
+ *   - A bubble on the map (now easier with 5.0 radius hover zone!)
  *   - Its corresponding sidebar card
  *   - The connector line
  *
  * ALL of these highlight simultaneously:
- *   ✓ The bubble scales up and glows
+ *   ✓ The bubble scales up (1.8x)
  *   ✓ The sidebar card gets teal ring and background
  *   ✓ The connector line becomes brighter
  *   ✓ All non-top-3 bubbles dim to 20% opacity
@@ -249,11 +258,15 @@ const ExplanationCard = ({
  *   - Other top-3 bubbles: 100% opacity (normal)
  *   - Non-top-3 bubbles: 20% opacity (dimmed)
  *
- * COLOR MEANINGS (kept separate for clarity):
+ * VISUAL ENCODING (simplified for clarity):
  * ---------------------------------------------------
- * - **Role Colors** (React, Python, Java, etc.): Bubble fill and glow
+ * - **Role Colors** (React, Python, Java, etc.): Bubble fill and stroke color
  * - **Rank Badge Color** (Teal): Independent of role, purely for ranking
- * - **Glow Intensity**: Represents semantic distance (closer = brighter)
+ * - **Stroke Width**: Represents semantic distance (thicker = closer match)
+ *   - Distance ≤15: 0.8 stroke width
+ *   - Distance ≤25: 0.6 stroke width
+ *   - Distance ≤35: 0.4 stroke width
+ *   - Distance >35: 0.3 stroke width
  *
  * HOW USERS SHOULD READ THIS:
  * ---------------------------------------------------
@@ -261,15 +274,18 @@ const ExplanationCard = ({
  * 2. Numbered bubbles (1, 2, 3) = top matches
  * 3. Lines = relationship between query and results
  * 4. Color = role type
- * 5. Glow + distance = semantic similarity
+ * 5. Border thickness + position = semantic similarity (thicker = closer)
+ * 6. Hover any bubble to see details!
  *
  * EXAMPLE WALKTHROUGH ("Java developers in Zurich"):
  * ---------------------------------------------------
- * 1. Large glowing bubble in center labeled "Query: Java developers in Zurich"
+ * 1. Large cyan bubble in center labeled "Query: Java developers in Zurich"
  * 2. Three bubbles nearby with badges "1", "2", "3" (Julia R., Emma K., Marco T.)
  * 3. Thin cyan lines connecting query to these 3 bubbles
- * 4. Hover Julia R.'s bubble → her sidebar card highlights, line brightens, others dim
- * 5. Hover Emma K.'s sidebar card → her bubble scales up, line brightens, others dim
+ * 4. Julia R. has thickest border (closest match)
+ * 5. Hover Julia R.'s bubble → her sidebar card highlights, line brightens, others dim
+ * 6. Hover Emma K.'s sidebar card → her bubble scales up, line brightens, others dim
+ * 7. NO confusing "ghost bubbles" - everything you see is interactive!
  * ==============================================================================
  */
 
@@ -299,7 +315,7 @@ const HowToReadCard = () => {
           <span className="font-bold text-foreground">4. Bubble color</span> = role type (React, Python, Java, etc.)
         </p>
         <p>
-          <span className="font-bold text-foreground">5. Glow intensity + distance</span> = how semantically close the candidate is in embedding space
+          <span className="font-bold text-foreground">5. Border thickness + position</span> = how semantically close the candidate is (thicker border = closer match)
         </p>
       </div>
     </motion.div>
@@ -477,7 +493,7 @@ export const EmbeddingSpaceMap = () => {
                   <span className="font-semibold text-foreground">Bubble color</span> = role type
                 </p>
                 <p>
-                  <span className="font-semibold text-foreground">Brighter glow + closer distance</span> = more semantically similar
+                  <span className="font-semibold text-foreground">Thicker border + closer position</span> = more semantically similar
                 </p>
               </div>
             </div>
@@ -630,49 +646,52 @@ export const EmbeddingSpaceMap = () => {
                 const displayX = attractedPos?.x || bubble.x;
                 const displayY = attractedPos?.y || bubble.y;
 
+                // Calculate stroke width based on distance (closer = thicker stroke)
+                // This replaces the confusing glow halo with a clear, interactive visual cue
+                const strokeWidth = isSelected ? 1.2 : (
+                  distance <= 15 ? 0.8 :
+                  distance <= 25 ? 0.6 :
+                  distance <= 35 ? 0.4 : 0.3
+                );
+
                 return (
                   <g key={bubble.id}>
-                    {/* Distance-based glow halo */}
+                    {/* Invisible larger hover zone - makes bubbles easier to hover */}
                     <motion.circle
                       cx={displayX}
                       cy={displayY}
-                      r={glowLevel.radius}
-                      fill={`hsl(var(${roleColor}))`}
-                      initial={{ opacity: 0 }}
+                      r="5.0"
+                      fill="transparent"
+                      className="cursor-pointer"
+                      onMouseEnter={() => setHoveredBubble(bubble.id)}
+                      onMouseLeave={() => setHoveredBubble(null)}
+                      onClick={() => setSelectedNode(selectedNode?.id === bubble.id ? null : bubble)}
+                      initial={{ scale: 0 }}
                       animate={{
-                        opacity: isStageActive('nodes') ? [
-                          glowLevel.intensity * 0.2,
-                          glowLevel.intensity * 0.5,
-                          glowLevel.intensity * 0.2
-                        ] : 0,
+                        scale: isStageActive('nodes') ? 1 : 0,
                         cx: displayX,
                         cy: displayY
                       }}
                       transition={{
-                        opacity: { duration: 2, repeat: Infinity },
-                        delay: 0.4 + idx * 0.1,
+                        scale: { duration: 0.5, delay: 0.4 + idx * 0.1 },
                         cx: { type: "spring", stiffness: 200, damping: 20 },
                         cy: { type: "spring", stiffness: 200, damping: 20 }
                       }}
                     />
 
-                    {/* Main node with role color */}
+                    {/* Main visible node with role color - NO glow halo confusion! */}
                     <motion.circle
                       cx={displayX}
                       cy={displayY}
                       r="2.8"
-                      fill={`hsl(var(${roleColor}) / 0.3)`}
+                      fill={`hsl(var(${roleColor}) / 0.4)`}
                       stroke={`hsl(var(${roleColor}))`}
-                      strokeWidth={isSelected ? "0.7" : "0.4"}
-                      className="cursor-pointer"
-                      onMouseEnter={() => setHoveredBubble(bubble.id)}
-                      onMouseLeave={() => setHoveredBubble(null)}
-                      onClick={() => setSelectedNode(selectedNode?.id === bubble.id ? null : bubble)}
+                      strokeWidth={strokeWidth}
+                      pointerEvents="none"
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{
                         scale: isStageActive('nodes') ? (isHovered || isSelected ? 1.8 : 1) : 0,
                         opacity: isStageActive('nodes') ? (shouldFade ? 0.2 : 1) : 0,
-                        y: isStageActive('nodes') ? [displayY, displayY - 0.5, displayY] : displayY,
                         cx: displayX,
                         cy: displayY
                       }}
@@ -685,16 +704,9 @@ export const EmbeddingSpaceMap = () => {
                           damping: 12
                         },
                         opacity: { duration: 0.4, delay: 0.4 + idx * 0.1 },
-                        y: {
-                          duration: 3 + idx * 0.3,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                          delay: 0.4 + idx * 0.1
-                        },
                         cx: { type: "spring", stiffness: 200, damping: 20 },
                         cy: { type: "spring", stiffness: 200, damping: 20 }
                       }}
-                      whileHover={{ scale: 2 }}
                     />
 
                     {/* Numeric badge for top 3 neighbors */}
@@ -798,7 +810,8 @@ export const EmbeddingSpaceMap = () => {
             >
               <p className="text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">Large central bubble</span> = your search query as an embedding.{' '}
-                <span className="font-semibold text-foreground">Numbered bubbles around it</span> = the top 3 matching candidates.
+                <span className="font-semibold text-foreground">Numbered bubbles around it</span> = the top 3 matching candidates.{' '}
+                <span className="font-semibold text-foreground">Hover any bubble</span> to see details.
               </p>
             </motion.div>
           </motion.div>
