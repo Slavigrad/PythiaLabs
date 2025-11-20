@@ -3,6 +3,7 @@ import { Database, Sparkles, TrendingUp, Cpu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EmbeddingPipelineVisualization } from "./EmbeddingPipelineVisualization";
 import { TransformationChamber } from "./TransformationChamber";
+import { VectorVault } from "./VectorVault";
 
 export const HowPythiaWorks = () => {
   const [playingPipeline, setPlayingPipeline] = useState(false);
@@ -112,8 +113,9 @@ export const HowPythiaWorks = () => {
                 }}
                 whileHover={{ scale: 1.02 }}
                 onClick={() => {
-                  // Only Card 1 (idx 0) opens the Transformation Chamber
-                  if (idx === 0) {
+                  // Card 1 (idx 0) opens the Transformation Chamber
+                  // Card 2 (idx 1) opens the Vector Vault
+                  if (idx === 0 || idx === 1) {
                     setSelectedStepModal(idx);
                   }
                 }}
@@ -225,6 +227,22 @@ export const HowPythiaWorks = () => {
                         </p>
                       </motion.div>
                     )}
+
+                    {/* Interactive hint for Card 2 */}
+                    {idx === 1 && (
+                      <motion.div
+                        className="mt-3 text-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.2, duration: 0.8 }}
+                      >
+                        <p className="text-xs text-accent font-semibold flex items-center justify-center gap-2">
+                          <Database className="w-3 h-3 animate-pulse" />
+                          Click to see vectors in action
+                          <Database className="w-3 h-3 animate-pulse" />
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
 
@@ -262,10 +280,13 @@ export const HowPythiaWorks = () => {
         </motion.div>
       </div>
 
-      {/* Transformation Chamber Modal */}
+      {/* Interactive Modals */}
       <AnimatePresence>
         {selectedStepModal === 0 && (
           <TransformationChamber onClose={() => setSelectedStepModal(null)} />
+        )}
+        {selectedStepModal === 1 && (
+          <VectorVault onClose={() => setSelectedStepModal(null)} />
         )}
       </AnimatePresence>
     </section>
