@@ -760,16 +760,19 @@ export const EmbeddingSpaceMap = () => {
                   fill="none"
                   stroke="hsl(var(--primary))"
                   strokeWidth="0.3"
-                  initial={{ opacity: 0, scale: 0 }}
+                  initial={{ opacity: 0, scale: 0.8 }}
                   animate={{
                     opacity: isStageActive('query') ? [0.2, 0.6, 0.2] : 0,
-                    r: isStageActive('query') ? [8, 10, 8] : 9,
-                    scale: isStageActive('query') ? 1 : 0
+                    scale: isStageActive('query') ? [0.9, 1.1, 0.9] : 0.8
                   }}
                   transition={{
                     opacity: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                    r: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                    scale: { delay: 1.8, type: "spring", stiffness: 100 }
+                    scale: {
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 1.8
+                    }
                   }}
                 />
 
