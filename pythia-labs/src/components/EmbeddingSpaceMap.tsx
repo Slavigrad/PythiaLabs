@@ -335,12 +335,15 @@ export const EmbeddingSpaceMap = () => {
     return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   };
 
-  const distances = syntheticData.map((bubble) => ({
-    ...bubble,
-    distance: calculateDistance(queryBubble.x, queryBubble.y, bubble.x, bubble.y),
-  }));
+  // Memoize nearestNeighbors to prevent infinite re-renders in useNodeAttraction hook
+  const nearestNeighbors = useMemo(() => {
+    const distances = syntheticData.map((bubble) => ({
+      ...bubble,
+      distance: calculateDistance(queryBubble.x, queryBubble.y, bubble.x, bubble.y),
+    }));
+    return distances.sort((a, b) => a.distance - b.distance).slice(0, 3);
+  }, [queryBubble.x, queryBubble.y]);
 
-  const nearestNeighbors = distances.sort((a, b) => a.distance - b.distance).slice(0, 3);
   const nearestIds = new Set(nearestNeighbors.map(n => n.id));
 
   const averageDistance = useMemo(() => {
