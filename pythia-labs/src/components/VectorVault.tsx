@@ -298,7 +298,7 @@ export const VectorVault = ({ onClose }: VectorVaultProps) => {
       onClick={onClose}
     >
       <motion.div
-        className="relative w-full max-w-7xl h-[90vh] glass-card overflow-hidden"
+        className="relative w-full max-w-7xl h-[90vh] glass-card overflow-y-auto"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -308,7 +308,7 @@ export const VectorVault = ({ onClose }: VectorVaultProps) => {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 z-10 glass-card p-3 rounded-xl hover:bg-accent/20 transition-all group"
+          className="absolute top-6 right-6 z-50 glass-card p-3 rounded-xl hover:bg-accent/20 transition-all group pointer-events-auto"
         >
           <X className="w-6 h-6 text-muted-foreground group-hover:text-accent transition-colors" />
         </button>
