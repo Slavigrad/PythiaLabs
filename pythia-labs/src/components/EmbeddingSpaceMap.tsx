@@ -869,9 +869,9 @@ export const EmbeddingSpaceMap = () => {
                     y={queryBubble.y - 11.5}
                     textAnchor="middle"
                     className="fill-primary font-bold pointer-events-none"
-                    style={{ fontSize: '3px', letterSpacing: '0.05px' }}
+                    style={{ fontSize: '2.3px', letterSpacing: '0.05px' }}
                   >
-                    🎯 {queries[selectedQuery].label}
+                    {queries[selectedQuery].label}
                   </text>
                 </motion.g>
               </g>
